@@ -1,0 +1,10 @@
+.vendorlogodiv{
+    min-width: 15rem;
+    /* margin-left: -1rem; */
+}
+
+.vendorlogo{
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}

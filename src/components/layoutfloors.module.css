@@ -1,0 +1,17 @@
+.tab{
+    position: absolute;
+    left:-2rem;
+    margin-top: 10rem;
+    /* cursor: pointer; */
+    background: green;
+    display: none;
+
+}
+
+
+@media (min-width: 992px) {
+    .tab{
+        display: block;
+    }
+
+}

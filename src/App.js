@@ -1,57 +1,87 @@
-import React from 'react';
-import logo from './logo.svg';
-import { Counter } from './features/counter/Counter';
-import './App.css';
+import React, { useState } from 'react';
+import { BrowserRouter, Route, Switch } from 'react-router-dom';
+
+import UnauthenticatedRoute from './components/UnauthenticatedRoute';
+import AuthenticatedRoute from './components/AuthenticatedRoute';
+// import { AppContext } from "./libs/contextLib";
+
+import { TopNavBar } from './components/TopNavBar';
+// import { Counter } from './features/counter/Counter';
+import { BottomSheet } from './components/BottomSheet';
+import { LayoutFloors } from './components/LayoutFloors'
+import { LayoutCounts } from './components/LayoutCounts'
+import { Login } from './views/Login'
+// import { Button } from 'reactstrap';
+// import './App.css';
+import './App.scss';
+require('dotenv').config();
 
 function App() {
+
+  // const [isAuthenticated, userHasAuthenticated] = useState(false);
+  const isAuthenticated = false;
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <Counter />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <span>
-          <span>Learn </span>
-          <a
-            className="App-link"
-            href="https://reactjs.org/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            React
-          </a>
-          <span>, </span>
-          <a
-            className="App-link"
-            href="https://redux.js.org/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Redux
-          </a>
-          <span>, </span>
-          <a
-            className="App-link"
-            href="https://redux-toolkit.js.org/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Redux Toolkit
-          </a>
-          ,<span> and </span>
-          <a
-            className="App-link"
-            href="https://react-redux.js.org/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            React Redux
-          </a>
-        </span>
-      </header>
-    </div>
+
+    <BrowserRouter>
+      <TopNavBar></TopNavBar>
+      <Switch>
+        <UnauthenticatedRoute
+            path="/login"
+            component={Login}
+            appProps={{ isAuthenticated }}
+          />
+        {/* <Route exact path="/login" name="Login Page" render={props => <Login {...props}/>} /> */}
+        
+        <div id="layoutSidenav">
+          <div id="layoutSidenav_nav" style={{background: "red"}}>
+            <nav className="sidenav shadow-right sidenav-light" ></nav>
+          </div>
+          <div id="layoutSidenav_content" style={{background: "blue"}}>
+            <main>
+              {/* <AuthenticatedRoute
+                path="/todos"
+                component={Todos}
+                appProps={{ isAuthenticated }}
+              /> */ }
+              {/* <Route component={NotFound} /> */}
+              
+              {/* <div className="container-fluid">
+                <div className="row">
+                  <div className="col-md-6">
+                    Column 1
+                  </div>
+                  <div className="col-md-6">
+                    Column 2
+                  </div>
+                </div>
+                <div className="row">
+                  <Counter />
+                </div>
+                
+              </div> */}
+              
+              
+            </main> 
+
+            <footer className="footer mt-auto footer-light"></footer>
+
+          </div>
+
+          <LayoutCounts/>
+          {/* <div id="layoutSidenav_counts" style={{background: "orange"}}>
+            <nav className="sidenav shadow-left sidenav-light" ></nav>
+          </div> */}
+          <LayoutFloors/>
+            
+
+          <BottomSheet/>
+
+        </div>
+      </Switch>
+    </BrowserRouter>
+
+
   );
 }
 

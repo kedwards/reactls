@@ -1,0 +1,15 @@
+.loginwrapper{
+    top: 3.625rem;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-width: 0;
+    flex-grow: 1;
+    min-height: calc(100vh - 3.625rem);
+}
+
+.loginform{
+    width: 300px;
+    margin: auto
+}

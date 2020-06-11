@@ -5,11 +5,23 @@ import App from './App';
 import store from './app/store';
 import { Provider } from 'react-redux';
 import * as serviceWorker from './serviceWorker';
+import 'bootstrap/dist/css/bootstrap.css';
+
+
+import { Provider as AlertProvider } from 'react-alert';
+import AlertTemplate from 'react-alert-template-basic'
+import alertOptions from "./constants/alert-config";
+
+
+// optional cofiguration
+
 
 ReactDOM.render(
   <React.StrictMode>
     <Provider store={store}>
-      <App />
+      <AlertProvider template={AlertTemplate} {...alertOptions}>
+        <App />
+      </AlertProvider>
     </Provider>
   </React.StrictMode>,
   document.getElementById('root')
