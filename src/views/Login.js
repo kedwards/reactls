@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import styles from './login.module.css'; 
 // import { useAppContext } from "../libs/contextLib";
 import { Button, Form, FormGroup, Label, Input, FormText } from 'reactstrap';
@@ -13,7 +14,7 @@ import {
   //   increment,
   //   incrementByAmount,
   //   incrementAsync,
-  setloggingin,setloggedin
+  setloggingin,setloggedin, setUsername, setToken
 } from '../components/authenticationSlice';
 
 
@@ -21,9 +22,10 @@ import {
 export function Login() {
 
   const alert = useAlert();
-  const [username, setUsername] = useState("");
+  const [username, setUserField] = useState("");
   const [password, setPassword] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const dispatch = useDispatch();
 
   // const { userHasAuthenticated } = useAppContext();
 
@@ -35,7 +37,7 @@ export function Login() {
 
     console.log('submitting');
     e.preventDefault(); //setLoader(true);
-    setloggingin(true);
+    dispatch(setloggingin());
     let postJson = {username,password}; let path = apiPath.adminLogin;
     const fr = await Helper.post(postJson, path);
     const response = await fr.response.json();
@@ -43,7 +45,9 @@ export function Login() {
       if (fr.status === 200) {
         if (response.success) {
           alert.success(response.msg);
-          setloggedin(true);
+          dispatch(setloggedin());
+          dispatch(setUsername(username));
+          dispatch(setToken(response.token));
           //localStorage.setItem("username", username);
           // saveJWT(response.token);
         } else {
@@ -67,7 +71,7 @@ export function Login() {
             // type="username"
             name="username" id="username" 
             value={username}
-            onChange={e => setUsername(e.target.value)}
+            onChange={e => setUserField(e.target.value)}
           />
         </FormGroup>
         <FormGroup >

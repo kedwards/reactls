@@ -5,6 +5,11 @@ import UnauthenticatedRoute from './components/UnauthenticatedRoute';
 import AuthenticatedRoute from './components/AuthenticatedRoute';
 // import { AppContext } from "./libs/contextLib";
 
+import { useSelector } from 'react-redux';
+import {
+  selectLoggedIn,selectUsername
+} from './components/authenticationSlice';
+
 import { TopNavBar } from './components/TopNavBar';
 // import { Counter } from './features/counter/Counter';
 import { BottomSheet } from './components/BottomSheet';
@@ -17,13 +22,17 @@ import './App.scss';
 require('dotenv').config();
 
 function App() {
-
+  // const loggedIn = useSelector(selectLoggedIn);
   // const [isAuthenticated, userHasAuthenticated] = useState(false);
-  const isAuthenticated = false;
+  const isAuthenticated = useSelector(selectLoggedIn);//false;
+  const username = useSelector(selectUsername);//false;
 
   return (
 
     <BrowserRouter>
+      <div style={{'position':'absolute','top':'30px', 'zIndex': '9999' }}>
+        {username}
+      </div>
       <TopNavBar></TopNavBar>
       <Switch>
         <UnauthenticatedRoute

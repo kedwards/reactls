@@ -6,7 +6,8 @@ export const authenticationSlice = createSlice({
     initialState: {
       loggingIn: false,
       loggedIn: false,
-      username: null
+      username: null,
+      token: null
     },
     reducers: {
       setloggingin: state => {
@@ -18,15 +19,19 @@ export const authenticationSlice = createSlice({
         state.loggingIn = false;
       },
       setUsername: (state, action) => {
-          state.username += action.payload;
+          state.username = action.payload;
+      },
+      setToken: (state, action) => {
+          state.token = action.payload;
       }
     },
   });
 
-export const { setloggingin, setloggedin, setUsername } = authenticationSlice.actions;
+export const { setloggingin, setloggedin, setUsername, setToken } = authenticationSlice.actions;
 
 
-export const selectLoggingIn = state => state.loggingIn;
-export const selectLoggedIn = state => state.loggedIn;
+export const selectLoggingIn = state => state.authentication.loggingIn;
+export const selectLoggedIn = state => state.authentication.loggedIn;
+export const selectUsername = state => state.authentication.username;
 
 export default authenticationSlice.reducer;
