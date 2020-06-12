@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import styles from './login.module.css'; 
-// import { useAppContext } from "../libs/contextLib";
 import { Button, Form, FormGroup, Label, Input, FormText } from 'reactstrap';
 import { useAlert } from "react-alert";
 
@@ -10,10 +9,6 @@ import apiPath from '../constants/apiPath';
 
 
 import {
-  //   decrement,
-  //   increment,
-  //   incrementByAmount,
-  //   incrementAsync,
   setloggingin,setloggedin, setUsername, setToken
 } from '../components/authenticationSlice';
 
@@ -24,10 +19,8 @@ export function Login() {
   const alert = useAlert();
   const [username, setUserField] = useState("");
   const [password, setPassword] = useState("");
-  const [submitted, setSubmitted] = useState(false);
   const dispatch = useDispatch();
 
-  // const { userHasAuthenticated } = useAppContext();
 
   function validateForm() {
     return username.length > 0 && password.length > 0;
@@ -48,8 +41,6 @@ export function Login() {
           dispatch(setloggedin());
           dispatch(setUsername(username));
           dispatch(setToken(response.token));
-          //localStorage.setItem("username", username);
-          // saveJWT(response.token);
         } else {
           alert.error(response.msg);
         }
@@ -63,7 +54,7 @@ export function Login() {
 
   return (
     <div className={styles.loginwrapper}>
-      <form onSubmit={handleSubmit} className={styles.loginform}>
+      <Form onSubmit={handleSubmit} className={styles.loginform}>
         <FormGroup >
           <Label for="username" >User</Label>
           <Input
@@ -86,7 +77,7 @@ export function Login() {
         <Button block disabled={!validateForm()} type="submit">
           Login
         </Button>
-      </form>
+      </Form>
     </div>
   );
 }

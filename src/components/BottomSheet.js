@@ -1,32 +1,14 @@
 import React from 'react';
-// import { Button } from 'reactstrap';
-// import logo from '../assets/img/honeywell-logo.png';
 import styles from './bottomsheet.module.css'; 
 
 import { useSelector, useDispatch } from 'react-redux';
 import {
-    //   decrement,
-    //   increment,
-    //   incrementByAmount,
-    //   incrementAsync,
-    selectInfoOpen, toggleinfo
+    //selectInfoOpen,
+     toggleinfo
 } from './topnavbarSlice';
-// import styles from './Counter.module.css';
 
 export function BottomSheet() {
-    let infoOpen = useSelector(selectInfoOpen);
-    console.log(infoOpen);
     const dispatch = useDispatch();
-    //   const [incrementAmount, setIncrementAmount] = useState('2');
-
-    // useEffect(() => {
-    //     document.body.classList.toggle('sidenav-toggled',!menuOpen);
-    //     document.body.classList.toggle('floors-toggled',floorOpen);
-    //     document.body.classList.toggle('counts-toggled',countsOpen);
-    //     document.body.classList.toggle('info-toggled',infoOpen);
-    //     // document.body.classList = `menuOpen: ${menuOpen}`;  
-    // });
-
 
     return (
         

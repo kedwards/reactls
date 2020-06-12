@@ -1,8 +1,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import { PersistGate } from 'redux-persist/integration/react'
 import './index.css';
 import App from './App';
-import store from './app/store';
+import { store, persistor } from './app/store';
 import { Provider } from 'react-redux';
 import * as serviceWorker from './serviceWorker';
 import 'bootstrap/dist/css/bootstrap.css';
@@ -16,12 +17,15 @@ import alertOptions from "./constants/alert-config";
 // optional cofiguration
 
 
+
 ReactDOM.render(
   <React.StrictMode>
     <Provider store={store}>
-      <AlertProvider template={AlertTemplate} {...alertOptions}>
-        <App />
-      </AlertProvider>
+      <PersistGate loading={null} persistor={persistor}>
+        <AlertProvider template={AlertTemplate} {...alertOptions}>
+          <App />
+        </AlertProvider>
+      </PersistGate>
     </Provider>
   </React.StrictMode>,
   document.getElementById('root')

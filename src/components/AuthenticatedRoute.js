@@ -1,17 +1,24 @@
 import React from "react";
+import { useSelector } from 'react-redux';
 import { Route, Redirect, useLocation } from "react-router-dom";
-// import { useAppContext } from "../libs/contextLib";
+
+import {
+  selectLoggedIn
+} from './authenticationSlice';
+
+
 
 export default function AuthenticatedRoute({ children, ...rest }) {
   const { pathname, search } = useLocation();
-  const isAuthenticated = false; // TODO - get this from redux store!
+  const isAuthenticated = useSelector(selectLoggedIn);
+  // const isAuthenticated = false; // TODO - get this from redux store!
   return (
     <Route {...rest}>
       {isAuthenticated ? (
         children
       ) : (
         <Redirect to={
-          `/login?redirect=${pathname}${search}`
+          `/login`//?redirect=${pathname}${search}`
         } />
       )}
     </Route>

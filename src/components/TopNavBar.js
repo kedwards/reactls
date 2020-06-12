@@ -4,36 +4,36 @@ import logo from '../assets/img/honeywell-logo.png';
 import styles from './topnavbar.module.css'; 
 
 import { useSelector, useDispatch } from 'react-redux';
+import {  selectLoggedIn,selectUsername, setLoggedOut} from './authenticationSlice';
 import {
-    //   decrement,
-    //   increment,
-    //   incrementByAmount,
-    //   incrementAsync,
-    selectInfoOpen, toggleinfo,
-    selectFloorOpen, selectCountsOpen, togglecounts,
-    selectMenuOpen, togglemenu, togglefloors
+    selectInfoOpen,
+    selectFloorOpen, selectCountsOpen,
+    selectMenuOpen, togglemenu
 } from './topnavbarSlice';
-// import styles from './Counter.module.css';
 
 export function TopNavBar() {
+    const isAuthenticated = useSelector(selectLoggedIn);
+    const username = useSelector(selectUsername);
+
     let menuOpen = useSelector(selectMenuOpen);
     let floorOpen = useSelector(selectFloorOpen);
     let countsOpen = useSelector(selectCountsOpen);
     let infoOpen = useSelector(selectInfoOpen);
     const dispatch = useDispatch();
-    //   const [incrementAmount, setIncrementAmount] = useState('2');
 
+    // Change Body Classes!
     useEffect(() => {    
         document.body.classList.toggle('sidenav-toggled',!menuOpen);
         document.body.classList.toggle('floors-toggled',floorOpen);
         document.body.classList.toggle('counts-toggled',countsOpen);
         document.body.classList.toggle('info-toggled',infoOpen);
-        // document.body.classList = `menuOpen: ${menuOpen}`;  
     });
 
 
     return (
         <nav className="topnav navbar navbar-expand-lg navbar-light bg-light justify-content-between">
+
+
             <div className="row">
                 <div className={styles.vendorlogodiv} >
                     <img src={logo} className={styles.vendorlogo} alt="logo" />
@@ -52,7 +52,24 @@ export function TopNavBar() {
 
             <div className="row">
 
-                { infoOpen?'true':'false'}
+                {isAuthenticated &&(
+                <>
+                    <div>{username}</div>
+                    <Button
+                        outline
+                        color="primary"
+                        aria-label="Logout User"
+                        onClick={() => dispatch(setLoggedOut())}
+                    >
+                        Logout
+                    </Button>
+                </>
+                )}
+                
+
+
+
+                {/* { infoOpen?'true':'false'}
                 <Button
                     outline
                     color="primary"
@@ -80,7 +97,7 @@ export function TopNavBar() {
                     onClick={() => dispatch(togglefloors())}
                 >
                     F
-                </Button>
+                </Button> */}
 
             </div>
         </nav>

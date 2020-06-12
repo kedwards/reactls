@@ -23,11 +23,17 @@ export const authenticationSlice = createSlice({
       },
       setToken: (state, action) => {
           state.token = action.payload;
+      },
+      setLoggedOut: state =>{
+        state.loggedIn = false;
+        state.loggingIn = false;
+        state.username = null;
+        state.token = null;
       }
     },
   });
 
-export const { setloggingin, setloggedin, setUsername, setToken } = authenticationSlice.actions;
+export const { setloggingin, setloggedin, setUsername, setToken, setLoggedOut } = authenticationSlice.actions;
 
 
 export const selectLoggingIn = state => state.authentication.loggingIn;
