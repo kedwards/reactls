@@ -5,8 +5,30 @@ import apiPath from "./apiPath";
 import axios from "axios";
 import Config from "./config";
 
+// import { useSelector } from 'react-redux';
+
+// import {
+//   selectToken
+// } from '../components/authenticationSlice';
+
+// const authToken = useSelector(selectToken);
 
 var helper = {
+  getRoles : async ({authToken})=>{
+    const url =  process.env.REACT_APP_API_BASE_URL + apiPath.list_roles;
+    const res = await fetch(url, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "x-access-token": authToken || ""
+      }
+    });
+
+    let response = await res;
+    let json = await response.json();
+
+    return { response, json, status: await res.status };
+  },
   createPdf: async (reportId, file_name = "") => {
     var element = document.getElementById(reportId);
     if (element == null) {

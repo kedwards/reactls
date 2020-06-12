@@ -1,5 +1,5 @@
-import React from "react";
-import { useSelector } from 'react-redux';
+import React, { useEffect} from "react";
+import { useSelector, useDispatch } from 'react-redux';
 import { Route, Redirect, useLocation } from "react-router-dom";
 
 import {
@@ -8,8 +8,9 @@ import {
 
 
 
+
 export default function AuthenticatedRoute({ children, ...rest }) {
-  const { pathname, search } = useLocation();
+  // const { pathname, search } = useLocation();
   const isAuthenticated = useSelector(selectLoggedIn);
   // const isAuthenticated = false; // TODO - get this from redux store!
   return (

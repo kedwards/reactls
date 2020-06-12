@@ -1,12 +1,10 @@
 import { combineReducers } from 'redux'
-import { configureStore } from '@reduxjs/toolkit';
+import { configureStore, getDefaultMiddleware } from '@reduxjs/toolkit';
 import counterReducer from '../features/counter/counterSlice';
 import topnavbarReducer from '../components/topnavbarSlice';
 import authenticationReducer from '../components/authenticationSlice'
 import storage from 'redux-persist/lib/storage'
 import { persistStore, persistReducer } from 'redux-persist'
-import logger from 'redux-logger'
-import thunk from 'redux-thunk'
 
 
 const persistConfig = {
@@ -23,7 +21,9 @@ const rootReducer = combineReducers({
 
 let storeObj = configureStore({
   reducer: persistReducer(persistConfig, rootReducer), //reducers//rootReducer//  rootReducerOld//
-  middleware: [thunk, logger] // this is in order to remove console error    https://github.com/rt2zz/redux-persist/issues/988
+  middleware:getDefaultMiddleware({  // fixes console error  :  https://github.com/rt2zz/redux-persist/issues/988
+    serializableCheck: false,
+  })
 });
 let persistorObj = persistStore(storeObj);
 

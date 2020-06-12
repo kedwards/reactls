@@ -39,5 +39,6 @@ export const { setloggingin, setloggedin, setUsername, setToken, setLoggedOut } 
 export const selectLoggingIn = state => state.authentication.loggingIn;
 export const selectLoggedIn = state => state.authentication.loggedIn;
 export const selectUsername = state => state.authentication.username;
+export const selectToken = state => state.authentication.token;
 
 export default authenticationSlice.reducer;

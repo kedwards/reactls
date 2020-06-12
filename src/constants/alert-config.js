@@ -9,6 +9,9 @@ let Config = {
   timeout: timeout,
   offset: '30px',
   // you can also just use 'scale'
-  transition: transitions.SCALE
+  transition: transitions.SCALE,
+  containerStyle: {
+    zIndex: 1040
+  }
 };
 export default Config;
