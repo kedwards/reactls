@@ -38,6 +38,8 @@ function App() {
         
         dispatch(connect('ws://localhost:3001'));
         
+        Helper.init({authToken, dispatch });
+
         setTimeout(function(){
           // dispatch(disconnect());
 

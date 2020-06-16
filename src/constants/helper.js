@@ -4,6 +4,7 @@ import html2pdf from "html2pdf";
 import apiPath from "./apiPath";
 import axios from "axios";
 import Config from "./config";
+import { setBuildings } from '../components/buildingsSlice';
 
 // import { useSelector } from 'react-redux';
 
@@ -14,6 +15,16 @@ import Config from "./config";
 // const authToken = useSelector(selectToken);
 
 var helper = {
+  init: async ({authToken, dispatch }) =>{
+    let buildings = await helper.get({}, apiPath.buildings, {token:authToken});
+    console.log(buildings);
+
+    let response = await buildings.response;
+    console.log('here!')
+    let json = await response.json();
+    console.log(json);
+    dispatch(setBuildings(json));
+  },
   getRoles : async ({authToken})=>{
     const url =  process.env.REACT_APP_API_BASE_URL + apiPath.list_roles;
     const res = await fetch(url, {
@@ -28,6 +39,9 @@ var helper = {
     let json = await response.json();
 
     return { response, json, status: await res.status };
+  },
+  getFloorPlanUrl : async ()=>{
+    return `http://localhost:3001/plans/retail.jpg`
   },
   createPdf: async (reportId, file_name = "") => {
     var element = document.getElementById(reportId);

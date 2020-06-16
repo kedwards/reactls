@@ -1,14 +1,21 @@
-import React, { useEffect, useState } from 'react'; 
+import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
+import styles from './rtls.module.css';
+import Helper from '../constants/helper';
 
 
 import {
     selectTags
 } from './tagsSlice';
 
- 
-const {Raphael,Paper,Set,Circle,Ellipse,Image,Rect,Text,Path,Line} = require('react-raphael');
- 
+import {
+    selectBuildings, selectCurrentBuilding, selectCurrentPlan, selectPlanUrl
+} from './buildingsSlice';
+
+
+
+const { Raphael, Paper, Set, Circle, Ellipse, Image, Rect, Text, Path, Line } = require('react-raphael');
+
 
 // Testing React's behaviour
 // var node = document.createElement("LI");                 // Create a <li> node
@@ -16,35 +23,41 @@ const {Raphael,Paper,Set,Circle,Ellipse,Image,Rect,Text,Path,Line} = require('re
 // node.appendChild(textnode);
 // setTimeout(function(){ document.getElementById('addhere').appendChild(node)},2000)
 
-export function RTLS() {
+export function RTLS({ width, height }) {
     const dispatch = useDispatch();
     const tags = useSelector(selectTags);
-    
-    let data = [
-        {x:50,y:50,r:40,attr:{"stroke":"#0b8ac9","stroke-width":5}},
-        {x:100,y:100,r:40,attr:{"stroke":"#f0c620","stroke-width":5}},
-        {x:150,y:50,r:40,attr:{"stroke":"#1a1a1a","stroke-width":5}},
-        {x:200,y:100,r:40,attr:{"stroke":"#10a54a","stroke-width":5}},
-        {x:250,y:50,r:40,attr:{"stroke":"#e11032","stroke-width":5}}
-    ]
+    const buildings = useSelector(selectBuildings);
+    const currentBuilding = useSelector(selectCurrentBuilding);
+    const currentPlan = useSelector(selectCurrentPlan);
 
-    console.log(`redrawing canvas: ${Date.now()}`)
+    // const floorPlanUrl = useSelector(selectPlanUrl);
 
-    return (<>
-                {/* <div>{menuOpen?'true':'false'}</div> */}
-                <div>{JSON.stringify(tags)}</div>
-                {/* { (new Date()).getMinutes() % 2 == 0 ? <div id="addhere"></div> : null } */}
-                
-                <Paper width={600} height={400}>
-                    <Set>    
-                    {
-                        Object.entries(tags).map(([key,ele])=>{
-                            return (<Circle key={ele.id} x={ele.prevX*10} y={ele.prevY*10} r={10} animate={Raphael.animation({cx:ele.x*10, cy:ele.y*10},100,'<>')} attr={{"stroke":"#e11032","stroke-width":5}}/>)
-                        })
-                    }
-                    </Set>
+    // const floorPlanUrl = buildings[currentBuilding]//.plans[currentFloorplan]
 
-                    {/* <Set>
+    // console.log(floorPlanUrl);
+
+
+
+
+    // console.log(`redrawing canvas: ${Date.now()} with floorplan ${currentPlan.image}`)
+
+    return (<div className={styles.layout}>
+        {/* <div>{menuOpen?'true':'false'}</div> */}
+        {/* <div>{JSON.stringify(tags)}</div> */}
+        {/* { (new Date()).getMinutes() % 2 == 0 ? <div id="addhere"></div> : null } */}
+
+        <Paper width={width} height={height}>
+            <Set>
+                {JSON.stringify(currentPlan)}
+                { currentPlan? <Image src={currentPlan.image} x={100} y={170} width={90} height={60} /> : null }
+                {
+                    Object.entries(tags).map(([key, ele]) => {
+                        return (<Circle key={ele.id} x={ele.prevX * 10} y={ele.prevY * 10} r={10} animate={Raphael.animation({ cx: ele.x * 10, cy: ele.y * 10 }, 300, '<>')} attr={{ "stroke": "#e11032", "stroke-width": 5 }} />)
+                    })
+                }
+            </Set>
+
+            {/* <Set>
                         <Rect x={30} y={148} width={240} height={150} attr={{"fill":"#10a54a","stroke":"#f0c620","stroke-width":5}}/>
                         <Ellipse x={150} y={198} ry={40} rx={100} attr={{"fill":"#fff","stroke":"#e11032"}} />
                         <Image src="static/images/5circle.png" x={100} y={170} width={90} height={60} />
@@ -53,7 +66,7 @@ export function RTLS() {
                         <Path d={["M150 287L150 287"]} animate={Raphael.animation({"path": ["M80 287L220 287"]},500,"<>")} attr={{"stroke":"#fff"}}/>
                         <Line x1={150} y1={290} x2={150} y2={290} animate={Raphael.animation({ x1:80, x2:220},500,"<>")} attr={{"stroke":"#fff"}}/>
                     </Set> */}
-                </Paper>
-            </>)
-    
+        </Paper>
+    </div>)
+
 }

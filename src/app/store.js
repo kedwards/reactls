@@ -4,6 +4,7 @@ import counterReducer from '../features/counter/counterSlice';
 import topnavbarReducer from '../components/topnavbarSlice';
 import authenticationReducer from '../components/authenticationSlice';
 import tagsReducer from '../components/tagsSlice';
+import buildingsReducer from '../components/buildingsSlice';
 import storage from 'redux-persist/lib/storage';
 import { persistStore, persistReducer } from 'redux-persist';
 // import reduxWebsocketReducer from '../components/ReduxWebsocketReducer';
@@ -23,7 +24,7 @@ import reduxWebsocket from '@giantmachines/redux-websocket';
 // Redux Websocket
 const reduxWebsocketMiddleware = reduxWebsocket();
 const persistConfig = {
-  key: 'username',
+  key: 'rtlsApp',
   storage,
   whitelist: ['authentication'] 
 }
@@ -34,6 +35,7 @@ const rootReducer = combineReducers({
   counter: counterReducer,
   topnavbar: topnavbarReducer,
   authentication: authenticationReducer,
+  buildings: buildingsReducer,
   // socket:reduxWebsocketReducer,
   tags:tagsReducer
 });

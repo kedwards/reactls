@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { Button } from 'reactstrap';
 import logo from '../assets/img/honeywell-logo.png';
 import styles from './topnavbar.module.css'; 
+import { useLocation } from 'react-router-dom'
 
 import { useSelector, useDispatch } from 'react-redux';
 import {  selectLoggedIn,selectUsername, setLoggedOut} from './authenticationSlice';
@@ -22,8 +23,14 @@ export function TopNavBar() {
     let infoOpen = useSelector(selectInfoOpen);
     const dispatch = useDispatch();
 
+    let location = useLocation();
+  console.log(location.pathname);
+ 
+
+
     // Change Body Classes!
     useEffect(() => {    
+        document.body.classList.toggle('rtls',location.pathname.startsWith('/rtls'))
         document.body.classList.toggle('sidenav-toggled',!menuOpen);
         document.body.classList.toggle('floors-toggled',floorOpen);
         document.body.classList.toggle('counts-toggled',countsOpen);

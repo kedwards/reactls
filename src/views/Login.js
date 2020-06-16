@@ -43,6 +43,7 @@ export function Login() {
           dispatch(setUsername(username));
           dispatch(setToken(response.token));
           dispatch(connect('ws://localhost:3001'));
+          Helper.init({authToken: response.token, dispatch});
         } else {
           alert.error(response.msg);
         }

@@ -1,12 +1,16 @@
 
 import React from 'react';
 import { Route, Switch } from 'react-router-dom';
+import { withResizeDetector } from 'react-resize-detector';
+import styles from './defaultlayout.module.css'; 
+
 
 import { BottomSheet } from './BottomSheet';
 import { LayoutFloors } from './LayoutFloors';
 import { LayoutCounts } from './LayoutCounts';
 import { RTLS } from './RTLS';
 
+const RTLSwithResize = withResizeDetector(RTLS);
 
 export function DefaultLayout (){
 
@@ -23,7 +27,7 @@ export function DefaultLayout (){
               <Route
                   exact
                   path="/rtls"
-                  component={RTLS}
+                  component={RTLSwithResize}
                 />
 
             </Switch>

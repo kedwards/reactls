@@ -3,7 +3,7 @@ import { createSlice, createAction } from '@reduxjs/toolkit';
 const websocketMessage = createAction('REDUX_WEBSOCKET::MESSAGE')
 
 
-const batchPeriod = 100;
+const batchPeriod = 300;
 let tagBuffer = [];
 let lastUpdate = Date.now();
 
@@ -74,7 +74,7 @@ export const tagsSlice = createSlice({
                         state.tags[o.id].z = Number(0);
                     })
 
-                    console.log(`updating Tag Data! with ${Object.keys(tagBuffer).length} records`)
+                    // console.log(`updating Tag Data! with ${Object.keys(tagBuffer).length} records`)
                         
                     tagBuffer = {};
                     if(forceFlush){
