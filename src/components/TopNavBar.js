@@ -10,6 +10,7 @@ import {
     selectFloorOpen, selectCountsOpen,
     selectMenuOpen, togglemenu
 } from './topnavbarSlice';
+import { connect, disconnect } from '@giantmachines/redux-websocket';
 
 export function TopNavBar() {
     const isAuthenticated = useSelector(selectLoggedIn);
@@ -59,7 +60,10 @@ export function TopNavBar() {
                         outline
                         color="primary"
                         aria-label="Logout User"
-                        onClick={() => dispatch(setLoggedOut())}
+                        onClick={() =>{
+                            dispatch(setLoggedOut());
+                            dispatch(disconnect());
+                        }}
                     >
                         Logout
                     </Button>

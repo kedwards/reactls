@@ -3,6 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import styles from './login.module.css'; 
 import { Button, Form, FormGroup, Label, Input, FormText } from 'reactstrap';
 import { useAlert } from "react-alert";
+import { connect, disconnect } from '@giantmachines/redux-websocket';
 
 import Helper from '../constants/helper';
 import apiPath from '../constants/apiPath';
@@ -41,6 +42,7 @@ export function Login() {
           dispatch(setloggedin());
           dispatch(setUsername(username));
           dispatch(setToken(response.token));
+          dispatch(connect('ws://localhost:3001'));
         } else {
           alert.error(response.msg);
         }

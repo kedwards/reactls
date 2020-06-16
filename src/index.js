@@ -19,7 +19,7 @@ import alertOptions from "./constants/alert-config";
 
 
 ReactDOM.render(
-  <React.StrictMode>
+  <>
     <Provider store={store}>
       <PersistGate loading={null} persistor={persistor}>
         <AlertProvider template={AlertTemplate} {...alertOptions}>
@@ -27,7 +27,7 @@ ReactDOM.render(
         </AlertProvider>
       </PersistGate>
     </Provider>
-  </React.StrictMode>,
+  </>,
   document.getElementById('root')
 );
 

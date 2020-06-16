@@ -9,9 +9,8 @@ import { TopNavBar } from './components/TopNavBar';
 import { Login } from './views/Login'
 import Helper from './constants/helper';
 
-
 import {  selectLoggedIn,selectUsername, selectToken, setloggingin, setloggedin, setLoggedOut} from './components/authenticationSlice';
-
+import { connect, disconnect } from '@giantmachines/redux-websocket';
 
 import './App.scss';
 require('dotenv').config();
@@ -36,6 +35,14 @@ function App() {
           console.log('token still good serverside!');
           // killUser = false;
         // }
+        
+        dispatch(connect('ws://localhost:3001'));
+        
+        setTimeout(function(){
+          // dispatch(disconnect());
+
+        },1000)
+
       }else{
         console.log('killing auth data, token was invalid on serverside!');
         dispatch(setLoggedOut());
