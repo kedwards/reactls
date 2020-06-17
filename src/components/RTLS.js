@@ -45,7 +45,7 @@ export function RTLS({ width, height }) {
 
 
     // calculates the pixels/meter of the screen! - changes when screen size changes!
-    const floorPlan = (currentPlan.height/currentPlan.width > screenHeight/screenWidth) ? { //floorplan too tall
+    const floorPlan = (currentPlan.height_pixels/currentPlan.width_pixels > screenHeight/screenWidth) ? { //floorplan too tall
             width: screenHeight * currentPlan.width_pixels / currentPlan.height_pixels,
             height: screenHeight
     } : {  // if we have Y overflow
@@ -66,7 +66,7 @@ export function RTLS({ width, height }) {
 
 
 
-    // console.log(`redrawing canvas: ${Date.now()} with floorplan ${currentPlan.image}`)
+    console.log(`redrawing canvas: ${Date.now()} with floorplan ${currentPlan.image}`)
 
     return (<div className={styles.layout}>
         <Paper width={floorPlan.width} height={floorPlan.height}>

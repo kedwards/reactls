@@ -1,0 +1,14 @@
+{
+  "name": "simulator",
+  "version": "1.0.0",
+  "description": "simulates tag movement for load testing",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "websocket": "^1.0.31"
+  }
+}
