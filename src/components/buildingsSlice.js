@@ -46,17 +46,12 @@ export const selectCurrentBuilding = state => state.buildings.currentBuilding;
 
 export const fetchBuildings = ({token}) => async dispatch => {
     let buildingsRequest = await Helper.get({}, apiPath.buildings, {token});
-    console.log(buildingsRequest);
-
     let response = await buildingsRequest.response;
-    console.log('here!')
     let json = await response.json();
-    console.log(json);
 
     let buildings = {}
-    let plans = { 'width': 1}
-    plans.poop = "stinky"
 
+    let plans = {}
     let firstPlan = null
     let firstBuilding = null;
 
@@ -68,12 +63,14 @@ export const fetchBuildings = ({token}) => async dispatch => {
         let dimensions = await (new Promise((res,rej)=>{
           var img = new Image();
           img.addEventListener("load", function(){
-              res({ width: this.naturalWidth, height: this.naturalHeight })
+              res({ width_pixels: this.naturalWidth, height_pixels: this.naturalHeight })
           });
           img.src = p.image;
         }));
 
         Object.assign(p,dimensions);
+        p.width_meters = p.width_pixels / p.scale;
+        p.height_meters = p.height_pixels / p.scale;
 
         plans[p.id] = p;
         if (!firstPlan) {

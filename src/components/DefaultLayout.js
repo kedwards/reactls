@@ -21,7 +21,7 @@ export function DefaultLayout (){
         <div id="layoutSidenav_nav" style={{background: "red"}}>
           <nav className="sidenav shadow-right sidenav-light" ></nav>
         </div>
-        <div id="layoutSidenav_content" style={{background: "blue"}}>
+        <div id="layoutSidenav_content" style={{background: "white"}}>
           <main>
             <Switch>
               <Route

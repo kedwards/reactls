@@ -144,6 +144,10 @@
   }
 
 
+  .nav-fixed #layoutSidenav #layoutSidenav_info{
+    z-index: 1037;
+  }
+
   .sidenav-toggled #layoutSidenav #layoutSidenav_content {
     margin-left: -15rem;
   }
@@ -285,4 +289,18 @@
 
 .rtls .footer{
   display:none;
+}
+
+
+
+
+
+
+
+
+// Raphael stuff
+
+.react-raphael svg{
+  display:block;
+  margin:auto;
 }
