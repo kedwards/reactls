@@ -13,6 +13,7 @@ import {
   setloggingin,setloggedin, setUsername, setToken
 } from '../components/authenticationSlice';
 
+import { fetchBuildings } from '../components/buildingsSlice';
 
 
 export function Login() {
@@ -43,7 +44,7 @@ export function Login() {
           dispatch(setUsername(username));
           dispatch(setToken(response.token));
           dispatch(connect('ws://localhost:3001'));
-          Helper.init({authToken: response.token, dispatch});
+          dispatch(fetchBuildings({token: response.token}));
         } else {
           alert.error(response.msg);
         }

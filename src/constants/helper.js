@@ -15,23 +15,23 @@ import { setBuildings } from '../components/buildingsSlice';
 // const authToken = useSelector(selectToken);
 
 var helper = {
-  init: async ({authToken, dispatch }) =>{
-    let buildings = await helper.get({}, apiPath.buildings, {token:authToken});
-    console.log(buildings);
+  // init: async ({authToken, dispatch }) =>{
+    // let buildings = await helper.get({}, apiPath.buildings, {token:authToken});
+    // console.log(buildings);
 
-    let response = await buildings.response;
-    console.log('here!')
-    let json = await response.json();
-    console.log(json);
-    dispatch(setBuildings(json));
-  },
-  getRoles : async ({authToken})=>{
+    // let response = await buildings.response;
+    // console.log('here!')
+    // let json = await response.json();
+    // console.log(json);
+    // dispatch(setBuildings(json));
+  // },
+  getRoles : async ({token})=>{
     const url =  process.env.REACT_APP_API_BASE_URL + apiPath.list_roles;
     const res = await fetch(url, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        "x-access-token": authToken || ""
+        "x-access-token": token || ""
       }
     });
 

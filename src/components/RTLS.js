@@ -49,7 +49,7 @@ export function RTLS({ width, height }) {
         <Paper width={width} height={height}>
             <Set>
                 {JSON.stringify(currentPlan)}
-                { currentPlan? <Image src={currentPlan.image} x={100} y={170} width={90} height={60} /> : null }
+                { currentPlan? <Image src={currentPlan.image} x={100} y={170} width={790} height={760} /> : null }
                 {
                     Object.entries(tags).map(([key, ele]) => {
                         return (<Circle key={ele.id} x={ele.prevX * 10} y={ele.prevY * 10} r={10} animate={Raphael.animation({ cx: ele.x * 10, cy: ele.y * 10 }, 300, '<>')} attr={{ "stroke": "#e11032", "stroke-width": 5 }} />)
@@ -58,14 +58,14 @@ export function RTLS({ width, height }) {
             </Set>
 
             {/* <Set>
-                        <Rect x={30} y={148} width={240} height={150} attr={{"fill":"#10a54a","stroke":"#f0c620","stroke-width":5}}/>
-                        <Ellipse x={150} y={198} ry={40} rx={100} attr={{"fill":"#fff","stroke":"#e11032"}} />
-                        <Image src="static/images/5circle.png" x={100} y={170} width={90} height={60} />
-                        <Text x={150} y={258} text="同一个世界 同一个梦想" attr={{"fill":"#fff"}}/>
-                        <Text x={150} y={273} text="One World One Dream" attr={{"fill":"#fff"}}/>
-                        <Path d={["M150 287L150 287"]} animate={Raphael.animation({"path": ["M80 287L220 287"]},500,"<>")} attr={{"stroke":"#fff"}}/>
-                        <Line x1={150} y1={290} x2={150} y2={290} animate={Raphael.animation({ x1:80, x2:220},500,"<>")} attr={{"stroke":"#fff"}}/>
-                    </Set> */}
+                    <Rect x={30} y={148} width={240} height={150} attr={{"fill":"#10a54a","stroke":"#f0c620","stroke-width":5}}/>
+                    <Ellipse x={150} y={198} ry={40} rx={100} attr={{"fill":"#fff","stroke":"#e11032"}} />
+                    <Image src="static/images/5circle.png" x={100} y={170} width={90} height={60} />
+                    <Text x={150} y={258} text="同一个世界 同一个梦想" attr={{"fill":"#fff"}}/>
+                    <Text x={150} y={273} text="One World One Dream" attr={{"fill":"#fff"}}/>
+                    <Path d={["M150 287L150 287"]} animate={Raphael.animation({"path": ["M80 287L220 287"]},500,"<>")} attr={{"stroke":"#fff"}}/>
+                    <Line x1={150} y1={290} x2={150} y2={290} animate={Raphael.animation({ x1:80, x2:220},500,"<>")} attr={{"stroke":"#fff"}}/>
+                </Set> */}
         </Paper>
     </div>)
 

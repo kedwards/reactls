@@ -10,6 +10,8 @@ import { Login } from './views/Login'
 import Helper from './constants/helper';
 
 import {  selectLoggedIn,selectUsername, selectToken, setloggingin, setloggedin, setLoggedOut} from './components/authenticationSlice';
+import { fetchBuildings } from './components/buildingsSlice';
+
 import { connect, disconnect } from '@giantmachines/redux-websocket';
 
 import './App.scss';
@@ -18,7 +20,7 @@ require('dotenv').config();
 function App() {
   let isAuthenticated = useSelector(selectLoggedIn);
   const username = useSelector(selectUsername);
-  const authToken = useSelector(selectToken);
+  const token = useSelector(selectToken);
   const dispatch = useDispatch();
   
   useEffect(() => {
@@ -28,7 +30,7 @@ function App() {
 
     async function checkLogin() {
       // let killUser = true;
-      let result = await Helper.getRoles({authToken })
+      let result = await Helper.getRoles({token })
       if(result.status === 200 && result.json && result.json.success){
         // let something = await result.response.json()
         // if(result.json && something){
@@ -37,13 +39,16 @@ function App() {
         // }
         
         dispatch(connect('ws://localhost:3001'));
+
+        dispatch(fetchBuildings({token}));
+
         
-        Helper.init({authToken, dispatch });
+        // Helper.init({authToken, dispatch });
 
-        setTimeout(function(){
-          // dispatch(disconnect());
+        // setTimeout(function(){
+        //   // dispatch(disconnect());
 
-        },1000)
+        // },1000)
 
       }else{
         console.log('killing auth data, token was invalid on serverside!');
