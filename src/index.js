@@ -19,15 +19,15 @@ import alertOptions from "./constants/alert-config";
 
 
 ReactDOM.render(
-  <React.StrictMode>
+  // <React.StrictMode>
     <Provider store={store}>
       <PersistGate loading={null} persistor={persistor}>
         <AlertProvider template={AlertTemplate} {...alertOptions}>
           <App />
         </AlertProvider>
       </PersistGate>
-    </Provider>
-  </React.StrictMode>,
+    </Provider>,
+  // </React.StrictMode>
   document.getElementById('root')
 );
 

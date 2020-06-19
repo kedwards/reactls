@@ -5,7 +5,7 @@ import Helper from '../constants/helper';
 
 
 import {
-    selectTags
+    selectTags, selectUpdatePeriod, getTags, getTagsTrigger
 } from './tagsSlice';
 
 import {
@@ -27,15 +27,19 @@ let widthLatch = 0;
 
 export function RTLS({ width, height }) {
     const dispatch = useDispatch();
-    const tags = useSelector(selectTags);
+    // const tags = useSelector(selectTags);
+    const tags = getTags();
+    const updateTrigger = useSelector(getTagsTrigger)
     const buildings = useSelector(selectBuildings);
     const currentBuilding = useSelector(selectCurrentBuilding);
     const currentPlan = useSelector(selectCurrentPlan);
+    const animationPeriod = useSelector(selectUpdatePeriod);
 
     const screenWidth = width;
     const screenHeight = height;
 
-    const isReSizing = (widthLatch != width);
+    // Performance purpose TODO-  remove this true!
+    const isReSizing = false || (widthLatch != width);
     widthLatch = width;
 
 
@@ -64,9 +68,12 @@ export function RTLS({ width, height }) {
 
 
 
+    
+    
 
 
     console.log(`redrawing canvas: ${Date.now()} with floorplan ${currentPlan.image}`)
+    // return (<div>Disabled Ouptut!!</div>)
 
     return (<div className={styles.layout}>
         <Paper width={floorPlan.width} height={floorPlan.height}>
@@ -75,7 +82,7 @@ export function RTLS({ width, height }) {
                 {
                     
                     Object.entries(tags).map(([key, ele]) => {
-                        return (<Circle key={ele.id} x={(currentPlan.originX*scaledFromOriginal) + (ele.prevX * pixelsPerMeter)} y={(currentPlan.originY*scaledFromOriginal) + (ele.prevY * pixelsPerMeter)} r={10} animate={ isReSizing ? false : Raphael.animation({ cx: (currentPlan.originX*scaledFromOriginal) + (ele.x * pixelsPerMeter), cy: (currentPlan.originY*scaledFromOriginal) + (ele.y * pixelsPerMeter) }, 300, '<>') } attr={{ "stroke": "#e11032", "stroke-width": 5 }} />)
+                        return (<Circle key={ele.id} x={(currentPlan.originX*scaledFromOriginal) + (ele.prevX * pixelsPerMeter)} y={(currentPlan.originY*scaledFromOriginal) + (ele.prevY * pixelsPerMeter)} r={10} animate={ isReSizing ? false : Raphael.animation({ cx: (currentPlan.originX*scaledFromOriginal) + (ele.x * pixelsPerMeter), cy: (currentPlan.originY*scaledFromOriginal) + (ele.y * pixelsPerMeter) }, animationPeriod, '<>') } attr={{ "stroke": "#e11032", "stroke-width": 5 }} />)
                     })
                 }
             </Set>

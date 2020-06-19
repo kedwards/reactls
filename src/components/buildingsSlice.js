@@ -59,7 +59,7 @@ export const fetchBuildings = ({token}) => async dispatch => {
     for( let b of json.results){
       for (let [key, p] of Object.entries(b.plans)) {
 
-        p.image = `http://localhost:3001/plans/${p.url.substring(p.url.lastIndexOf('/')+1)}`;
+        p.image = `${process.env.REACT_APP_API_BASE_URL}/plans/${p.url.substring(p.url.lastIndexOf('/')+1)}`;
         let dimensions = await (new Promise((res,rej)=>{
           var img = new Image();
           img.addEventListener("load", function(){

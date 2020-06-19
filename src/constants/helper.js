@@ -41,7 +41,7 @@ var helper = {
     return { response, json, status: await res.status };
   },
   getFloorPlanUrl : async ()=>{
-    return `http://localhost:3001/plans/retail.jpg`
+    return `${process.env.REACT_APP_API_BASE_URL}/plans/retail.jpg`
   },
   createPdf: async (reportId, file_name = "") => {
     var element = document.getElementById(reportId);

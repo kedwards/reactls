@@ -38,7 +38,7 @@ function App() {
           // killUser = false;
         // }
         
-        dispatch(connect('ws://localhost:3001'));
+        dispatch(connect(process.env.REACT_APP_API_WEBSOCKET_URL));
 
         dispatch(fetchBuildings({token}));
 

@@ -2,19 +2,21 @@ import { createSlice, createAction } from '@reduxjs/toolkit';
 
 const websocketMessage = createAction('REDUX_WEBSOCKET::MESSAGE')
 
-
-const batchPeriod = 300;
-let tagBuffer = [];
+const batchPeriod = 500;
+const overRideMovementperiod = 500 || null; // otherwise it uses the batchPeriod
+let tagBuffer = {};
 let lastUpdate = Date.now();
 
-
+let tags = {};
 
 // TODO-  add dispatch every batchPeriod, in order to display any last dangling positions in the buffer if the feed cuts off. LAST POSITION IS IMPORTANT!
 
 export const tagsSlice = createSlice({
     name: 'tags',
     initialState: {
-        tags: {}
+        tags: {},
+        updatePeriod: batchPeriod,
+        update:0
     },
     reducers: {
         // togglemenu: state => {
@@ -23,7 +25,6 @@ export const tagsSlice = createSlice({
     },
     extraReducers: {
         [websocketMessage]: (state, action) => {
-
             
             let rightNow = Date.now();
             let forceFlush = false;   //used to guarentee steps aren't missed
@@ -40,6 +41,7 @@ export const tagsSlice = createSlice({
 
             }
 
+            let disabled = true;  // This makes it run FAST!!! - slowdown comes from updating state!!!
 
             // if we have a piece of data
             if (obj) {
@@ -49,30 +51,34 @@ export const tagsSlice = createSlice({
                     tagBuffer[obj.id] = obj; // we'll do this later, after drawing the current batch
                 }
 
-                // forceFlush = false;  // Use this to make it possibly skip movements
+                forceFlush = false;  // Use this to make it possibly skip movements
 
                 if (forceFlush || rightNow > (lastUpdate + batchPeriod) ) {  // createTimeout/update if needed.
                     lastUpdate = rightNow;
                     let updateObject = {};
 
-                    Object.entries(state.tags).forEach(([key,tag])=>{
-                        if(!tagBuffer[key] && (tag.prevX != tag.x || tag.prevY!=tag.y)){
-                            tag.prevX = tag.x;
-                            tag.prevY = tag.y;
+                    if(!disabled){
+                        for(const [key, tag] of Object.entries(state.tags)){
+                            if(!tagBuffer[key] && (tag.prevX !== tag.x || tag.prevY!==tag.y)){
+                                updateObject[key] = Object.assign({},tag,{ prevX:tag.x, prevY:tag.y })
+                            }
                         }
-                    })
+                    }else{
+                        for(const [key, tag] of Object.entries(tags)){
+                            if(!tagBuffer[key] && (tag.prevX !== tag.x || tag.prevY!==tag.y)){
+                                // updateObject[key] = Object.assign({},tag,{ prevX:tag.x, prevY:tag.y })
+                                tags[key] = Object.assign({},tag,{ prevX:tag.x, prevY:tag.y })
+                            }
+                        }
+                    }
 
-                    Object.entries(tagBuffer).forEach(([key,o]) => {
-                        
-                        state.tags[o.id] = state.tags[o.id] || {
-                            id: o.id
+                    for(const [key, o] of Object.entries(tagBuffer)){
+                        if(!disabled){
+                            updateObject[key] = Object.assign({},state.tags[key] || { id: key },{ prevX: state.tags[key]?state.tags[key].x : Number(o.x), prevY: state.tags[key] ? state.tags[key].y : Number(o.y), x: Number(o.x), y: Number(o.y), z:Number(0)})
+                        }else{
+                            tags[key] = Object.assign({},tags[key] || { id: key },{ prevX: tags[key]?tags[key].x : Number(o.x), prevY: tags[key] ? tags[key].y : Number(o.y), x: Number(o.x), y: Number(o.y), z:Number(0)})
                         }
-                        state.tags[o.id].prevX = state.tags[o.id].x || Number(o.x);
-                        state.tags[o.id].prevY = state.tags[o.id].y || Number(o.y);
-                        state.tags[o.id].x = Number(o.x);
-                        state.tags[o.id].y = Number(o.y);
-                        state.tags[o.id].z = Number(0);
-                    })
+                    }
 
                     // console.log(`updating Tag Data! with ${Object.keys(tagBuffer).length} records`)
                         
@@ -80,9 +86,12 @@ export const tagsSlice = createSlice({
                     if(forceFlush){
                         tagBuffer[obj.id] = obj;
                     }
-
+                    if(Object.keys(updateObject).length !== 0){
+                        state.tags = Object.assign({},state.tags,updateObject);
+                    }else{
+                        state.update++;
+                    }
                 }
-
             }
         }
     }
@@ -91,5 +100,8 @@ export const tagsSlice = createSlice({
 // export const {  } = tagsSlice.actions;
 
 export const selectTags = state => state.tags.tags;
+export const selectUpdatePeriod = state => overRideMovementperiod ? overRideMovementperiod : state.tags.updatePeriod;
+export const getTags = () => tags;
+export const getTagsTrigger = state => state.tags.update;
 
 export default tagsSlice.reducer;

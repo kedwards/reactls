@@ -43,7 +43,7 @@ export function Login() {
           dispatch(setloggedin());
           dispatch(setUsername(username));
           dispatch(setToken(response.token));
-          dispatch(connect('ws://localhost:3001'));
+          dispatch(connect(process.env.REACT_APP_API_WEBSOCKET_URL));
           dispatch(fetchBuildings({token: response.token}));
         } else {
           alert.error(response.msg);
