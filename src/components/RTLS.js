@@ -157,23 +157,42 @@ export function RTLS({ width, height }) {
     const scaledFromOriginal = floorPlan.width / currentPlan.width_pixels  // originX/originY is specified in pixels relative to the orignal image size!
 
 
-    return (<div className={styles.layout} onWheel={scrollHandler} onMouseMove={moveHandler} onMouseDown={mouseDownHandler} onMouseUp={mouseUpHandler}>
-        <Paper ref={domRef} width={floorPlan.width} height={floorPlan.height} viewbox={viewbox.string ? viewbox.string : undefined}>
-            <Set>
-                <Image src={currentPlan.image} x={0} y={0} width={floorPlan.width} height={floorPlan.height} />
-                {
-                    // disabling resizing during pagesize transition seems to introduce jumping, not worth it
-                    // isReSizing ? 
-                    // Object.entries(tags).map(([key, ele]) => {
-                    //     return (<Circle key={ele.id} x={(currentPlan.originX*scaledFromOriginal) + (ele.prevX * pixelsPerMeter)} y={(currentPlan.originY*scaledFromOriginal) + (ele.prevY * pixelsPerMeter)} r={10}  attr={{ "stroke": "#e11032", "stroke-width": 5 }} />)
-                    // }) :
-                    Object.entries(tags).map(([key, ele]) => {
-                        return (<Circle key={ele.id} x={(currentPlan.originX * scaledFromOriginal) + (ele.prevX * pixelsPerMeter)} y={(currentPlan.originY * scaledFromOriginal) + (ele.prevY * pixelsPerMeter)} r={10} animate={Raphael.animation({ cx: (currentPlan.originX * scaledFromOriginal) + (ele.x * pixelsPerMeter), cy: (currentPlan.originY * scaledFromOriginal) + (ele.y * pixelsPerMeter) }, animationPeriod, '<>')} attr={{ "stroke": "#e11032", "stroke-width": 5 }} />)
-                    })
-                }
-            </Set>
 
-        </Paper>
+    return (<div className={styles.layout} onWheel={scrollHandler} onMouseMove={moveHandler} onMouseDown={mouseDownHandler} onMouseUp={mouseUpHandler}>
+        <div className={styles.mapwrapper}>
+            <Paper ref={domRef} width={floorPlan.width} height={floorPlan.height} viewbox={viewbox.string ? viewbox.string : undefined}>
+                <Set>
+                    <Image src={currentPlan.image} x={0} y={0} width={floorPlan.width} height={floorPlan.height} />
+                    {
+                        // disabling resizing during pagesize transition seems to introduce jumping, not worth it
+                        // isReSizing ? 
+                        // Object.entries(tags).map(([key, ele]) => {
+                        //     return (<Circle key={ele.id} x={(currentPlan.originX*scaledFromOriginal) + (ele.prevX * pixelsPerMeter)} y={(currentPlan.originY*scaledFromOriginal) + (ele.prevY * pixelsPerMeter)} r={10}  attr={{ "stroke": "#e11032", "stroke-width": 5 }} />)
+                        // }) :
+                        Object.entries(tags).map(([key, ele]) => {
+                            return (<Circle key={ele.id} x={(currentPlan.originX * scaledFromOriginal) + (ele.prevX * pixelsPerMeter)} y={(currentPlan.originY * scaledFromOriginal) + (ele.prevY * pixelsPerMeter)} r={10} animate={Raphael.animation({ cx: (currentPlan.originX * scaledFromOriginal) + (ele.x * pixelsPerMeter), cy: (currentPlan.originY * scaledFromOriginal) + (ele.y * pixelsPerMeter) }, animationPeriod, '<>')} attr={{ "stroke": "#e11032", "stroke-width": 5 }} />)
+                        })
+                    }
+                </Set>
+
+            </Paper>
+            <div className={styles.zoomindicator}>
+                <div className={styles.zoomouter} style={{
+                    width:200, 
+                    height:200*floorPlan.height/floorPlan.width,
+                    backgroundImage:`url(${currentPlan.image})`,
+                    backgroundSize: `cover`
+                    }}>
+                    <div className={styles.zoominner} style={{
+                        width:200/viewbox.zoom, 
+                        height: 200*floorPlan.height/floorPlan.width/viewbox.zoom,
+                        left: 200*viewbox.offsetX/viewbox.width/viewbox.zoom,
+                        top: 200*viewbox.offsetY*floorPlan.height/floorPlan.width/viewbox.height/viewbox.zoom
+                        }}>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>)
 
 }
