@@ -59,13 +59,15 @@ export function RTLS({ width, height }) {
         let zoomChange = Math.pow(event.deltaY > 0 ? 0.9 : 1.1, Math.abs(event.deltaY) / wheelUnitSize);
         let newZoom = zoomChange * viewbox.zoom;
 
-        let percentMouseX = mousePosition.x / screenWidth;
-        let percentMouseY = mousePosition.y / screenHeight;
+        let percentMouseX = mousePosition.x / floorPlan.width;
+        let percentMouseY = mousePosition.y / floorPlan.height;
+        console.log('mousePercent',percentMouseX,percentMouseY)
+        // debugger;
 
-        let prevHeight = (viewbox.height) || screenHeight;
-        let newHeight = prevHeight/zoomChange;
-        let prevWidth = (viewbox.width || screenWidth)
+        let prevWidth = (viewbox.width || floorPlan.width)
         let newWidth = prevWidth / zoomChange;
+        let prevHeight = (viewbox.height) || floorPlan.height;
+        let newHeight = prevHeight/zoomChange;
 
         let addedOffsetX = 0;
         let addedOffsetY = 0;
@@ -74,7 +76,7 @@ export function RTLS({ width, height }) {
             addedOffsetY = (prevHeight - newHeight)*percentMouseY;
         }else{
             addedOffsetX = -(newWidth - prevWidth)*percentMouseX;
-            addedOffsetY = -(newWidth - prevWidth)*percentMouseY;
+            addedOffsetY = -(newHeight - prevHeight)*percentMouseY;
         }
         let newOffsetX = viewbox.offsetX + addedOffsetX;
         let newOffsetY = viewbox.offsetY + addedOffsetY;
@@ -82,10 +84,9 @@ export function RTLS({ width, height }) {
 
         let string = `${newOffsetX} ${newOffsetY} ${newWidth} ${floorPlan.height / newZoom}`;
 
-        console.log(JSON.stringify(mousePosition));
 
         let newObj = { ...viewbox, zoom: newZoom, string, width:newWidth, height: newHeight, offsetX: newOffsetX, offsetY: newOffsetY }
-        console.log(JSON.stringify(newObj));
+        // console.log(JSON.stringify(newObj));
         setViewbox(newObj)
 
 
