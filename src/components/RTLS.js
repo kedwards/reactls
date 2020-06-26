@@ -27,11 +27,10 @@ const { Raphael, Paper, Set, Circle, Ellipse, Image, Rect, Text, Path, Line } = 
 
 // let widthLatch = 0;
 
-let mousePosition = { x: 0, y: 0, domoffsetx: 0, domoffsety: 0 };
+let mousePosition = { x: 0, y: 0, domoffsetx: 0, domoffsety: 0, mousedown: false };
 
 export function RTLS({ width, height }) {
     const dispatch = useDispatch();
-    // const tags = useSelector(selectTags);
     const tags = getTags();
     const updateTrigger = useSelector(getTagsTrigger)
     const buildings = useSelector(selectBuildings);
@@ -41,9 +40,9 @@ export function RTLS({ width, height }) {
     const domRef = useRef();
     const screenWidth = width;
     const screenHeight = height;
-    // const refMouse = useRef({x:0,y:0});
 
 
+    // stores viewbox variable information.
     const [viewbox, setViewbox] = useState({
         zoom: 1,
         offsetX: 0,
@@ -61,7 +60,7 @@ export function RTLS({ width, height }) {
 
         let percentMouseX = mousePosition.x / floorPlan.width;
         let percentMouseY = mousePosition.y / floorPlan.height;
-        console.log('mousePercent',percentMouseX,percentMouseY)
+        // console.log('mousePercent',percentMouseX,percentMouseY)
         // debugger;
 
         let prevWidth = (viewbox.width || floorPlan.width)
@@ -82,20 +81,42 @@ export function RTLS({ width, height }) {
         let newOffsetY = viewbox.offsetY + addedOffsetY;
 
 
-        let string = `${newOffsetX} ${newOffsetY} ${newWidth} ${floorPlan.height / newZoom}`;
-
+        let string = `${newOffsetX} ${newOffsetY} ${newWidth} ${newHeight}`;
 
         let newObj = { ...viewbox, zoom: newZoom, string, width:newWidth, height: newHeight, offsetX: newOffsetX, offsetY: newOffsetY }
-        // console.log(JSON.stringify(newObj));
         setViewbox(newObj)
+    }
 
+    const mouseDownHandler = (event)=>{
+        mousePosition = { ...mousePosition, mousedown:true }
+    }
 
-        // setZoomOffset
+    const mouseUpHandler = (event)=>{
+        mousePosition = { ...mousePosition, mousedown:false }
     }
 
     const moveHandler = (event) => {
+        let prevWidth = (viewbox.width || floorPlan.width);
+        let prevHeight = (viewbox.height) || floorPlan.height;
+
+        let newX = event.clientX-mousePosition.domoffsetx;
+        let newY = event.clientY-mousePosition.domoffsety;
+        if(mousePosition.mousedown){
+
+            let diffX = (newX - mousePosition.x)/viewbox.zoom;
+            let diffY = (newY - mousePosition.y)/viewbox.zoom;
+
+            let newOffsetX = viewbox.offsetX - diffX;
+            let newOffsetY = viewbox.offsetY - diffY;
+
+            let string = `${newOffsetX} ${newOffsetY} ${prevWidth} ${prevHeight}`;
+
+
+            let newObj = { ...viewbox, string, offsetX: newOffsetX, offsetY: newOffsetY }
+            setViewbox(newObj)
+        }
         // debugger;
-        mousePosition = { ...mousePosition, x: event.clientX-mousePosition.domoffsetx, y: event.clientY-mousePosition.domoffsety };
+        mousePosition = { ...mousePosition, x: newX, y: newY };
     }
     // console.log('screenSizes',screenWidth,screenHeight);
 
@@ -136,12 +157,8 @@ export function RTLS({ width, height }) {
     const scaledFromOriginal = floorPlan.width / currentPlan.width_pixels  // originX/originY is specified in pixels relative to the orignal image size!
 
 
-    let paperProps = {
-        viewbox: viewbox.string ? viewbox.string : undefined
-    };
-
-    return (<div className={styles.layout} onWheel={scrollHandler} onMouseMove={moveHandler}>
-        <Paper ref={domRef} width={floorPlan.width} height={floorPlan.height} {...paperProps}>
+    return (<div className={styles.layout} onWheel={scrollHandler} onMouseMove={moveHandler} onMouseDown={mouseDownHandler} onMouseUp={mouseUpHandler}>
+        <Paper ref={domRef} width={floorPlan.width} height={floorPlan.height} viewbox={viewbox.string ? viewbox.string : undefined}>
             <Set>
                 <Image src={currentPlan.image} x={0} y={0} width={floorPlan.width} height={floorPlan.height} />
                 {
