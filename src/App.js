@@ -10,20 +10,44 @@ import { Login } from './views/Login'
 import Helper from './constants/helper';
 
 import {  selectLoggedIn,selectUsername, selectToken, setloggingin, setloggedin, setLoggedOut} from './components/authenticationSlice';
+import {  passDispatchReference, handleWebsocketMessage } from './components/tagsSlice';
 import { fetchBuildings } from './components/buildingsSlice';
 
-import { connect, disconnect } from '@giantmachines/redux-websocket';
+import ReconnectingWebSocket from 'reconnecting-websocket';
+
+
 
 import './App.scss';
 require('dotenv').config();
 
+let rws = null; // websocket reference
+export const initWebsocket = () =>{
+  rws = new ReconnectingWebSocket(process.env.REACT_APP_API_WEBSOCKET_URL);
+  rws.addEventListener('message', (m) => {
+    handleWebsocketMessage(m);
+  });
+}
+
+export const killWebsocket = () =>{
+  rws.close();
+  rws = null;
+  // let rws = new ReconnectingWebSocket(process.env.REACT_APP_API_WEBSOCKET_URL);
+  // rws.addEventListener('message', (m) => {
+  //   handleWebsocketMessage(m);
+  // });
+}
+
+
+
+
 function App() {
   let isAuthenticated = useSelector(selectLoggedIn);
-  const username = useSelector(selectUsername);
   const token = useSelector(selectToken);
   const dispatch = useDispatch();
   
   useEffect(() => {
+
+    passDispatchReference(dispatch) // gives tagsSlice ability to dispatch changes to "update" state variable
 
     // dispatch(setloggingin());
     console.log('useEffect!')
@@ -32,13 +56,10 @@ function App() {
       // let killUser = true;
       let result = await Helper.getRoles({token })
       if(result.status === 200 && result.json && result.json.success){
-        // let something = await result.response.json()
-        // if(result.json && something){
           console.log('token still good serverside!');
-          // killUser = false;
-        // }
         
-        dispatch(connect(process.env.REACT_APP_API_WEBSOCKET_URL));
+        // dispatch(connect(process.env.REACT_APP_API_WEBSOCKET_URL)); // slow way
+        initWebsocket();
 
         dispatch(fetchBuildings({token}));
 

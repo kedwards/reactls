@@ -1,10 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
+import { initWebsocket } from '../App';
 import styles from './login.module.css'; 
 import { Button, Form, FormGroup, Label, Input, FormText } from 'reactstrap';
 import { useAlert } from "react-alert";
-import { connect, disconnect } from '@giantmachines/redux-websocket';
-
+// import { connect, disconnect } from '@giantmachines/redux-websocket';
 import Helper from '../constants/helper';
 import apiPath from '../constants/apiPath';
 
@@ -43,7 +43,10 @@ export function Login() {
           dispatch(setloggedin());
           dispatch(setUsername(username));
           dispatch(setToken(response.token));
-          dispatch(connect(process.env.REACT_APP_API_WEBSOCKET_URL));
+
+          // dispatch(connect(process.env.REACT_APP_API_WEBSOCKET_URL)); //slow way  
+          initWebsocket();        
+          
           dispatch(fetchBuildings({token: response.token}));
         } else {
           alert.error(response.msg);

@@ -1,16 +1,18 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
+import ReactDOM from 'react-dom';
 import styles from './rtls.module.css';
 import Helper from '../constants/helper';
 
 
 import {
-    selectTags, selectUpdatePeriod, getTags, getTagsTrigger
+    selectTags, selectUpdatePeriod, getTags, getTagsTrigger//, setDrawingFalse, setDrawingTrue
 } from './tagsSlice';
 
 import {
     selectBuildings, selectCurrentBuilding, selectCurrentPlan, selectPlanUrl
 } from './buildingsSlice';
+import { isBuffer } from 'lodash';
 
 
 
@@ -23,7 +25,9 @@ const { Raphael, Paper, Set, Circle, Ellipse, Image, Rect, Text, Path, Line } = 
 // node.appendChild(textnode);
 // setTimeout(function(){ document.getElementById('addhere').appendChild(node)},2000)
 
-let widthLatch = 0;
+// let widthLatch = 0;
+
+let mousePosition = { x: 0, y: 0, domoffsetx: 0, domoffsety: 0 };
 
 export function RTLS({ width, height }) {
     const dispatch = useDispatch();
@@ -34,55 +38,119 @@ export function RTLS({ width, height }) {
     const currentBuilding = useSelector(selectCurrentBuilding);
     const currentPlan = useSelector(selectCurrentPlan);
     const animationPeriod = useSelector(selectUpdatePeriod);
-
+    const domRef = useRef();
     const screenWidth = width;
     const screenHeight = height;
+    // const refMouse = useRef({x:0,y:0});
+
+
+    const [viewbox, setViewbox] = useState({
+        zoom: 1,
+        offsetX: 0,
+        offsetY: 0,
+        width: null,
+        height: null,
+        string: false
+    });
+
+    const scrollHandler = (event) => {
+
+        const wheelUnitSize = 30;
+        let zoomChange = Math.pow(event.deltaY > 0 ? 0.9 : 1.1, Math.abs(event.deltaY) / wheelUnitSize);
+        let newZoom = zoomChange * viewbox.zoom;
+
+        let percentMouseX = mousePosition.x / screenWidth;
+        let percentMouseY = mousePosition.y / screenHeight;
+
+        let prevHeight = (viewbox.height) || screenHeight;
+        let newHeight = prevHeight/zoomChange;
+        let prevWidth = (viewbox.width || screenWidth)
+        let newWidth = prevWidth / zoomChange;
+
+        let addedOffsetX = 0;
+        let addedOffsetY = 0;
+        if (zoomChange > 1) { // zooming in
+            addedOffsetX = (prevWidth - newWidth)*percentMouseX;
+            addedOffsetY = (prevHeight - newHeight)*percentMouseY;
+        }else{
+            addedOffsetX = -(newWidth - prevWidth)*percentMouseX;
+            addedOffsetY = -(newWidth - prevWidth)*percentMouseY;
+        }
+        let newOffsetX = viewbox.offsetX + addedOffsetX;
+        let newOffsetY = viewbox.offsetY + addedOffsetY;
+
+
+        let string = `${newOffsetX} ${newOffsetY} ${newWidth} ${floorPlan.height / newZoom}`;
+
+        console.log(JSON.stringify(mousePosition));
+
+        let newObj = { ...viewbox, zoom: newZoom, string, width:newWidth, height: newHeight, offsetX: newOffsetX, offsetY: newOffsetY }
+        console.log(JSON.stringify(newObj));
+        setViewbox(newObj)
+
+
+        // setZoomOffset
+    }
+
+    const moveHandler = (event) => {
+        // debugger;
+        mousePosition = { ...mousePosition, x: event.clientX-mousePosition.domoffsetx, y: event.clientY-mousePosition.domoffsety };
+    }
+    // console.log('screenSizes',screenWidth,screenHeight);
 
     // Performance purpose TODO-  remove this true!
-    const isReSizing = false || (widthLatch != width);
-    widthLatch = width;
+    // const isReSizing = false || (widthLatch != width);
+    // widthLatch = width;
 
+    useEffect(() => {
+        // ReactDOM = 
+        if (domRef.current) {
 
-    if(!currentPlan){
-        return (<div>No Current Plan</div>)
+            let boundingRect = domRef.current.parentNode.getBoundingClientRect();
+            mousePosition.domoffsetx = boundingRect.x;
+            mousePosition.domoffsety = boundingRect.y;
+        }
+    }, [])
+
+    if (!currentPlan || screenHeight === undefined || screenWidth === undefined) {
+        return (<div ref={domRef} className={styles.layout}>No Current Plan</div>)
     }
 
 
+    // TODO- move this to buildingSlice somehow? but it needs this components height
     // calculates the pixels/meter of the screen! - changes when screen size changes!
-    const floorPlan = (currentPlan.height_pixels/currentPlan.width_pixels > screenHeight/screenWidth) ? { //floorplan too tall
-            width: screenHeight * currentPlan.width_pixels / currentPlan.height_pixels,
-            height: screenHeight
+    const floorPlan = (currentPlan.height_pixels / currentPlan.width_pixels > screenHeight / screenWidth) ? { //floorplan too tall
+        width: screenHeight * currentPlan.width_pixels / currentPlan.height_pixels,
+        height: screenHeight
     } : {  // if we have Y overflow
-        width: screenWidth,
-        height: screenWidth * currentPlan.height_pixels / currentPlan.width_pixels
-    }
+            width: screenWidth,
+            height: screenWidth * currentPlan.height_pixels / currentPlan.width_pixels
+        }
 
     // want to convert meters to pixels, so, figure out the conversion rate
     const pixelsPerMeter = floorPlan.width / currentPlan.width_meters;
 
     // want to go from floorplan image width to screen pixels
 
-    const scaledFromOriginal = floorPlan.width/currentPlan.width_pixels
-    
-    //currentPlan.originX currentPlan.scale * floorPlan.width / currentPlan.width_pixels;
+    const scaledFromOriginal = floorPlan.width / currentPlan.width_pixels  // originX/originY is specified in pixels relative to the orignal image size!
 
 
+    let paperProps = {
+        viewbox: viewbox.string ? viewbox.string : undefined
+    };
 
-    
-    
-
-
-    console.log(`redrawing canvas: ${Date.now()} with floorplan ${currentPlan.image}`)
-    // return (<div>Disabled Ouptut!!</div>)
-
-    return (<div className={styles.layout}>
-        <Paper width={floorPlan.width} height={floorPlan.height}>
+    return (<div className={styles.layout} onWheel={scrollHandler} onMouseMove={moveHandler}>
+        <Paper ref={domRef} width={floorPlan.width} height={floorPlan.height} {...paperProps}>
             <Set>
                 <Image src={currentPlan.image} x={0} y={0} width={floorPlan.width} height={floorPlan.height} />
                 {
-                    
+                    // disabling resizing during pagesize transition seems to introduce jumping, not worth it
+                    // isReSizing ? 
+                    // Object.entries(tags).map(([key, ele]) => {
+                    //     return (<Circle key={ele.id} x={(currentPlan.originX*scaledFromOriginal) + (ele.prevX * pixelsPerMeter)} y={(currentPlan.originY*scaledFromOriginal) + (ele.prevY * pixelsPerMeter)} r={10}  attr={{ "stroke": "#e11032", "stroke-width": 5 }} />)
+                    // }) :
                     Object.entries(tags).map(([key, ele]) => {
-                        return (<Circle key={ele.id} x={(currentPlan.originX*scaledFromOriginal) + (ele.prevX * pixelsPerMeter)} y={(currentPlan.originY*scaledFromOriginal) + (ele.prevY * pixelsPerMeter)} r={10} animate={ isReSizing ? false : Raphael.animation({ cx: (currentPlan.originX*scaledFromOriginal) + (ele.x * pixelsPerMeter), cy: (currentPlan.originY*scaledFromOriginal) + (ele.y * pixelsPerMeter) }, animationPeriod, '<>') } attr={{ "stroke": "#e11032", "stroke-width": 5 }} />)
+                        return (<Circle key={ele.id} x={(currentPlan.originX * scaledFromOriginal) + (ele.prevX * pixelsPerMeter)} y={(currentPlan.originY * scaledFromOriginal) + (ele.prevY * pixelsPerMeter)} r={10} animate={Raphael.animation({ cx: (currentPlan.originX * scaledFromOriginal) + (ele.x * pixelsPerMeter), cy: (currentPlan.originY * scaledFromOriginal) + (ele.y * pixelsPerMeter) }, animationPeriod, '<>')} attr={{ "stroke": "#e11032", "stroke-width": 5 }} />)
                     })
                 }
             </Set>
