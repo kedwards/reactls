@@ -3,6 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import ReactDOM from 'react-dom';
 import styles from './rtls.module.css';
 import Helper from '../constants/helper';
+import appConfig from '../constants/config';
 
 
 import {
@@ -25,7 +26,7 @@ const { Raphael, Paper, Set, Circle, Ellipse, Image, Rect, Text, Path, Line } = 
 // node.appendChild(textnode);
 // setTimeout(function(){ document.getElementById('addhere').appendChild(node)},2000)
 
-// let widthLatch = 0;
+let widthLatch = 0;
 
 let mousePosition = { x: 0, y: 0, domoffsetx: 0, domoffsety: 0, mousedown: false };
 
@@ -40,6 +41,10 @@ export function RTLS({ width, height }) {
     const domRef = useRef();
     const screenWidth = width;
     const screenHeight = height;
+    const zoomWindowSize = appConfig.ZOOM_WINDOW_SIZE;
+    const zoomPanLimit = appConfig.ZOOM_PAN_LIMIT;
+    const zoomOutLimit = appConfig.ZOOM_OUT_LIMIT;
+    const zoomInLimit = appConfig.ZOOM_IN_LIMIT;
 
 
     // stores viewbox variable information.
@@ -56,7 +61,19 @@ export function RTLS({ width, height }) {
 
         const wheelUnitSize = 30;
         let zoomChange = Math.pow(event.deltaY > 0 ? 0.9 : 1.1, Math.abs(event.deltaY) / wheelUnitSize);
-        let newZoom = zoomChange * viewbox.zoom;
+        let newZoom = zoomChange * viewbox.zoom
+        if(newZoom < zoomOutLimit){ // limit zoom out!
+            newZoom = zoomOutLimit;
+            zoomChange = newZoom / viewbox.zoom;
+        }
+        // newWidth  
+        else if((viewbox.width || floorPlan.width) / (pixelsPerMeter * zoomChange ) < zoomInLimit){ // limit zoom out!
+            // newZoom = zoomOutLimit;
+            // zoomChange = newZoom / viewbox.zoom;
+            zoomChange = (viewbox.width || floorPlan.width)/(pixelsPerMeter* zoomInLimit);
+            newZoom = zoomChange * viewbox.zoom;
+        }
+
 
         let percentMouseX = mousePosition.x / floorPlan.width;
         let percentMouseY = mousePosition.y / floorPlan.height;
@@ -77,9 +94,10 @@ export function RTLS({ width, height }) {
             addedOffsetX = -(newWidth - prevWidth)*percentMouseX;
             addedOffsetY = -(newHeight - prevHeight)*percentMouseY;
         }
-        let newOffsetX = viewbox.offsetX + addedOffsetX;
-        let newOffsetY = viewbox.offsetY + addedOffsetY;
+        let tempNewOffsetX = viewbox.offsetX + addedOffsetX;
+        let tempNewOffsetY = viewbox.offsetY + addedOffsetY;
 
+        let { newOffsetX, newOffsetY } = offsetNormalizer(tempNewOffsetX,tempNewOffsetY, newWidth, newHeight);
 
         let string = `${newOffsetX} ${newOffsetY} ${newWidth} ${newHeight}`;
 
@@ -91,9 +109,62 @@ export function RTLS({ width, height }) {
         mousePosition = { ...mousePosition, mousedown:true }
     }
 
-    const mouseUpHandler = (event)=>{
+    const mouseUpHandler = (event)=>{ // this handler is also used for the mouseLeave event
         mousePosition = { ...mousePosition, mousedown:false }
     }
+
+
+
+    // Checks new offset values, and newHeight, and returns adjusted offsets to force centering when zoomed outside of pan limit.
+    const offsetNormalizer = (newOffsetX, newOffsetY, newWidth, newHeight)=>{
+        let pastX = 0;
+        let pastY = 0;
+
+        if(-newOffsetX > zoomPanLimit*pixelsPerMeter){
+            if(newOffsetX < viewbox.offsetX){
+                newOffsetX = viewbox.offsetX;
+            }
+            pastX++;
+        }
+        if(-newOffsetY > zoomPanLimit*pixelsPerMeter){
+            if(newOffsetY < viewbox.offsetY){
+                newOffsetY = viewbox.offsetY;
+            }
+            pastY++;
+        }
+        if(newOffsetX + (newWidth || viewbox.width||floorPlan.width) - zoomPanLimit*pixelsPerMeter> floorPlan.width){
+            if(newOffsetX > viewbox.offsetX){
+                newOffsetX = viewbox.offsetX;
+            }
+            pastX++;
+        }
+        if(newOffsetY + (newHeight || viewbox.height||floorPlan.height) - zoomPanLimit*pixelsPerMeter> floorPlan.height){
+            if(newOffsetY > viewbox.offsetY){
+                newOffsetY = viewbox.offsetY;
+            }
+            pastY++;
+        }
+        if(-newOffsetX > zoomPanLimit*pixelsPerMeter){  // have to repeat these, because it may shift twice if done in the other order and we could miss it
+            pastX++;
+        }
+        if(-newOffsetY > zoomPanLimit*pixelsPerMeter){  // have to repeat these, because it may shift twice if done in the other order and we could miss it
+            pastY++;
+        }
+        if((newWidth || viewbox.width||floorPlan.width)-floorPlan.width > 2*zoomPanLimit*pixelsPerMeter){ // zoom out causes lopsidedness past pan limit
+            pastX++;
+        }
+        if((newHeight || viewbox.height||floorPlan.height)-floorPlan.height > 2*zoomPanLimit*pixelsPerMeter){ // zoom out causes lopsidedness past pan limit
+            pastY++;
+        }
+        if(pastX > 1 ){ // moved it twice - so its zoomed out past the PAN limit, center it!
+            newOffsetX = (floorPlan.width - (newWidth || viewbox.width||floorPlan.width))/2;
+        }
+        if(pastY > 1 ){ // moved it twice - so its zoomed out past the PAN limit, center it!
+            newOffsetY = (floorPlan.height - (newHeight || viewbox.height||floorPlan.height))/2;
+        }
+        return { newOffsetX, newOffsetY }
+    }
+
 
     const moveHandler = (event) => {
         let prevWidth = (viewbox.width || floorPlan.width);
@@ -106,8 +177,10 @@ export function RTLS({ width, height }) {
             let diffX = (newX - mousePosition.x)/viewbox.zoom;
             let diffY = (newY - mousePosition.y)/viewbox.zoom;
 
-            let newOffsetX = viewbox.offsetX - diffX;
-            let newOffsetY = viewbox.offsetY - diffY;
+            let tempNewOffsetX = viewbox.offsetX - diffX;
+            let tempNewOffsetY = viewbox.offsetY - diffY;
+
+            let {newOffsetX, newOffsetY } = offsetNormalizer(tempNewOffsetX,tempNewOffsetY);
 
             let string = `${newOffsetX} ${newOffsetY} ${prevWidth} ${prevHeight}`;
 
@@ -121,8 +194,6 @@ export function RTLS({ width, height }) {
     // console.log('screenSizes',screenWidth,screenHeight);
 
     // Performance purpose TODO-  remove this true!
-    // const isReSizing = false || (widthLatch != width);
-    // widthLatch = width;
 
     useEffect(() => {
         // ReactDOM = 
@@ -149,6 +220,17 @@ export function RTLS({ width, height }) {
             height: screenWidth * currentPlan.height_pixels / currentPlan.width_pixels
         }
 
+    const isReSizing = false || (widthLatch != floorPlan.width);
+    if(isReSizing && widthLatch != 0){
+        let newWidth = (viewbox.width||floorPlan.width) * floorPlan.width/widthLatch
+        let newHeight = newWidth * currentPlan.height_pixels / currentPlan.width_pixels
+        let newOffsetX = (viewbox.offsetX||0)*newWidth/viewbox.width;
+        let newOffsetY = (viewbox.offsetY||0)*newHeight/viewbox.height;
+        let string = `${newOffsetX} ${newOffsetY} ${newWidth} ${newHeight}`;
+        let newObj = { ...viewbox, string, offsetX:newOffsetX, offsetY:newOffsetY, width:newWidth, height: newHeight}
+        setViewbox(newObj)
+    }
+    widthLatch = floorPlan.width;
     // want to convert meters to pixels, so, figure out the conversion rate
     const pixelsPerMeter = floorPlan.width / currentPlan.width_meters;
 
@@ -158,7 +240,7 @@ export function RTLS({ width, height }) {
 
 
 
-    return (<div className={styles.layout} onWheel={scrollHandler} onMouseMove={moveHandler} onMouseDown={mouseDownHandler} onMouseUp={mouseUpHandler}>
+    return (<div className={styles.layout} onWheel={scrollHandler} onMouseMove={moveHandler} onMouseDown={mouseDownHandler} onMouseUp={mouseUpHandler} onMouseLeave={mouseUpHandler}>
         <div className={styles.mapwrapper}>
             <Paper ref={domRef} width={floorPlan.width} height={floorPlan.height} viewbox={viewbox.string ? viewbox.string : undefined}>
                 <Set>
@@ -176,22 +258,24 @@ export function RTLS({ width, height }) {
                 </Set>
 
             </Paper>
+            { zoomWindowSize &&
             <div className={styles.zoomindicator}>
                 <div className={styles.zoomouter} style={{
-                    width:200, 
-                    height:200*floorPlan.height/floorPlan.width,
+                    width:zoomWindowSize, 
+                    height:zoomWindowSize*floorPlan.height/floorPlan.width,
                     backgroundImage:`url(${currentPlan.image})`,
                     backgroundSize: `cover`
                     }}>
                     <div className={styles.zoominner} style={{
-                        width:200/viewbox.zoom, 
-                        height: 200*floorPlan.height/floorPlan.width/viewbox.zoom,
-                        left: 200*viewbox.offsetX/viewbox.width/viewbox.zoom,
-                        top: 200*viewbox.offsetY*floorPlan.height/floorPlan.width/viewbox.height/viewbox.zoom
+                        width:zoomWindowSize/viewbox.zoom, 
+                        height: zoomWindowSize*floorPlan.height/floorPlan.width/viewbox.zoom,
+                        left: zoomWindowSize*viewbox.offsetX/(viewbox.width||floorPlan.width)/viewbox.zoom,
+                        top: zoomWindowSize*viewbox.offsetY*floorPlan.height/floorPlan.width/(viewbox.height||floorPlan.height)/viewbox.zoom
                         }}>
                     </div>
                 </div>
             </div>
+            }
         </div>
     </div>)
 

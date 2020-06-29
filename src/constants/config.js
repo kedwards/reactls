@@ -1,4 +1,10 @@
 let Config = {
+  ZOOM_WINDOW_SIZE: 120, // pixels (width) on screen, false ==> disables it
+  ZOOM_PAN_LIMIT:10, // meters- limit bounds of panning
+  ZOOM_OUT_LIMIT: 0.5, // zoom magnification.  (lower is more zoomed out)
+  ZOOM_IN_LIMIT: 3, // meters- number of meters that the full screen of the device will show, lower is more zoomed in
+
+
   DEFAULT_TAG_TYPE: "tag",
   DEFAULT_PADDING_X: 10,
   DEFAULT_PADDING_Y: 10,
