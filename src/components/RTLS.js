@@ -26,6 +26,7 @@ const { Raphael, Paper, Set, Circle, Ellipse, Image, Rect, Text, Path, Line } = 
 // node.appendChild(textnode);
 // setTimeout(function(){ document.getElementById('addhere').appendChild(node)},2000)
 
+let planLatch = null;
 let widthLatch = 0;
 
 let mousePosition = { x: 0, y: 0, domoffsetx: 0, domoffsety: 0, mousedown: false };
@@ -48,29 +49,30 @@ export function RTLS({ width, height }) {
 
 
     // stores viewbox variable information.
-    const [viewbox, setViewbox] = useState({
-        zoom: 1,
+    const viewBoxInit = {
+        zoom: appConfig.ZOOM_INIT,
         offsetX: 0,
         offsetY: 0,
         width: null,
         height: null,
         string: false
-    });
+    }
+    const [viewbox, setViewbox] = useState({ ...viewBoxInit});
 
     const scrollHandler = (event) => {
 
         const wheelUnitSize = 30;
         let zoomChange = Math.pow(event.deltaY > 0 ? 0.9 : 1.1, Math.abs(event.deltaY) / wheelUnitSize);
         let newZoom = zoomChange * viewbox.zoom
-        if(newZoom < zoomOutLimit){ // limit zoom out!
+        if (newZoom < zoomOutLimit) { // limit zoom out!
             newZoom = zoomOutLimit;
             zoomChange = newZoom / viewbox.zoom;
         }
         // newWidth  
-        else if((viewbox.width || floorPlan.width) / (pixelsPerMeter * zoomChange ) < zoomInLimit){ // limit zoom out!
+        else if ((viewbox.width || floorPlan.width) / (pixelsPerMeter * zoomChange) < zoomInLimit) { // limit zoom out!
             // newZoom = zoomOutLimit;
             // zoomChange = newZoom / viewbox.zoom;
-            zoomChange = (viewbox.width || floorPlan.width)/(pixelsPerMeter* zoomInLimit);
+            zoomChange = (viewbox.width || floorPlan.width) / (pixelsPerMeter * zoomInLimit);
             newZoom = zoomChange * viewbox.zoom;
         }
 
@@ -83,84 +85,84 @@ export function RTLS({ width, height }) {
         let prevWidth = (viewbox.width || floorPlan.width)
         let newWidth = prevWidth / zoomChange;
         let prevHeight = (viewbox.height) || floorPlan.height;
-        let newHeight = prevHeight/zoomChange;
+        let newHeight = prevHeight / zoomChange;
 
         let addedOffsetX = 0;
         let addedOffsetY = 0;
         if (zoomChange > 1) { // zooming in
-            addedOffsetX = (prevWidth - newWidth)*percentMouseX;
-            addedOffsetY = (prevHeight - newHeight)*percentMouseY;
-        }else{
-            addedOffsetX = -(newWidth - prevWidth)*percentMouseX;
-            addedOffsetY = -(newHeight - prevHeight)*percentMouseY;
+            addedOffsetX = (prevWidth - newWidth) * percentMouseX;
+            addedOffsetY = (prevHeight - newHeight) * percentMouseY;
+        } else {
+            addedOffsetX = -(newWidth - prevWidth) * percentMouseX;
+            addedOffsetY = -(newHeight - prevHeight) * percentMouseY;
         }
         let tempNewOffsetX = viewbox.offsetX + addedOffsetX;
         let tempNewOffsetY = viewbox.offsetY + addedOffsetY;
 
-        let { newOffsetX, newOffsetY } = offsetNormalizer(tempNewOffsetX,tempNewOffsetY, newWidth, newHeight);
+        let { newOffsetX, newOffsetY } = offsetNormalizer(tempNewOffsetX, tempNewOffsetY, newWidth, newHeight);
 
         let string = `${newOffsetX} ${newOffsetY} ${newWidth} ${newHeight}`;
 
-        let newObj = { ...viewbox, zoom: newZoom, string, width:newWidth, height: newHeight, offsetX: newOffsetX, offsetY: newOffsetY }
+        let newObj = { ...viewbox, zoom: newZoom, string, width: newWidth, height: newHeight, offsetX: newOffsetX, offsetY: newOffsetY }
         setViewbox(newObj)
     }
 
-    const mouseDownHandler = (event)=>{
-        mousePosition = { ...mousePosition, mousedown:true }
+    const mouseDownHandler = (event) => {
+        mousePosition = { ...mousePosition, mousedown: true }
     }
 
-    const mouseUpHandler = (event)=>{ // this handler is also used for the mouseLeave event
-        mousePosition = { ...mousePosition, mousedown:false }
+    const mouseUpHandler = (event) => { // this handler is also used for the mouseLeave event
+        mousePosition = { ...mousePosition, mousedown: false }
     }
 
 
 
     // Checks new offset values, and newHeight, and returns adjusted offsets to force centering when zoomed outside of pan limit.
-    const offsetNormalizer = (newOffsetX, newOffsetY, newWidth, newHeight)=>{
+    const offsetNormalizer = (newOffsetX, newOffsetY, newWidth, newHeight) => {
         let pastX = 0;
         let pastY = 0;
 
-        if(-newOffsetX > zoomPanLimit*pixelsPerMeter){
-            if(newOffsetX < viewbox.offsetX){
+        if (-newOffsetX > zoomPanLimit * pixelsPerMeter) {
+            if (newOffsetX < viewbox.offsetX) {
                 newOffsetX = viewbox.offsetX;
             }
             pastX++;
         }
-        if(-newOffsetY > zoomPanLimit*pixelsPerMeter){
-            if(newOffsetY < viewbox.offsetY){
+        if (-newOffsetY > zoomPanLimit * pixelsPerMeter) {
+            if (newOffsetY < viewbox.offsetY) {
                 newOffsetY = viewbox.offsetY;
             }
             pastY++;
         }
-        if(newOffsetX + (newWidth || viewbox.width||floorPlan.width) - zoomPanLimit*pixelsPerMeter> floorPlan.width){
-            if(newOffsetX > viewbox.offsetX){
+        if (newOffsetX + (newWidth || viewbox.width || floorPlan.width) - zoomPanLimit * pixelsPerMeter > floorPlan.width) {
+            if (newOffsetX > viewbox.offsetX) {
                 newOffsetX = viewbox.offsetX;
             }
             pastX++;
         }
-        if(newOffsetY + (newHeight || viewbox.height||floorPlan.height) - zoomPanLimit*pixelsPerMeter> floorPlan.height){
-            if(newOffsetY > viewbox.offsetY){
+        if (newOffsetY + (newHeight || viewbox.height || floorPlan.height) - zoomPanLimit * pixelsPerMeter > floorPlan.height) {
+            if (newOffsetY > viewbox.offsetY) {
                 newOffsetY = viewbox.offsetY;
             }
             pastY++;
         }
-        if(-newOffsetX > zoomPanLimit*pixelsPerMeter){  // have to repeat these, because it may shift twice if done in the other order and we could miss it
+        if (-newOffsetX > zoomPanLimit * pixelsPerMeter) {  // have to repeat these, because it may shift twice if done in the other order and we could miss it
             pastX++;
         }
-        if(-newOffsetY > zoomPanLimit*pixelsPerMeter){  // have to repeat these, because it may shift twice if done in the other order and we could miss it
+        if (-newOffsetY > zoomPanLimit * pixelsPerMeter) {  // have to repeat these, because it may shift twice if done in the other order and we could miss it
             pastY++;
         }
-        if((newWidth || viewbox.width||floorPlan.width)-floorPlan.width > 2*zoomPanLimit*pixelsPerMeter){ // zoom out causes lopsidedness past pan limit
+        if ((newWidth || viewbox.width || floorPlan.width) - floorPlan.width > 2 * zoomPanLimit * pixelsPerMeter) { // zoom out causes lopsidedness past pan limit
             pastX++;
         }
-        if((newHeight || viewbox.height||floorPlan.height)-floorPlan.height > 2*zoomPanLimit*pixelsPerMeter){ // zoom out causes lopsidedness past pan limit
+        if ((newHeight || viewbox.height || floorPlan.height) - floorPlan.height > 2 * zoomPanLimit * pixelsPerMeter) { // zoom out causes lopsidedness past pan limit
             pastY++;
         }
-        if(pastX > 1 ){ // moved it twice - so its zoomed out past the PAN limit, center it!
-            newOffsetX = (floorPlan.width - (newWidth || viewbox.width||floorPlan.width))/2;
+        if (pastX > 1) { // moved it twice - so its zoomed out past the PAN limit, center it!
+            newOffsetX = (floorPlan.width - (newWidth || viewbox.width || floorPlan.width)) / 2;
         }
-        if(pastY > 1 ){ // moved it twice - so its zoomed out past the PAN limit, center it!
-            newOffsetY = (floorPlan.height - (newHeight || viewbox.height||floorPlan.height))/2;
+        if (pastY > 1) { // moved it twice - so its zoomed out past the PAN limit, center it!
+            newOffsetY = (floorPlan.height - (newHeight || viewbox.height || floorPlan.height)) / 2;
         }
         return { newOffsetX, newOffsetY }
     }
@@ -170,17 +172,17 @@ export function RTLS({ width, height }) {
         let prevWidth = (viewbox.width || floorPlan.width);
         let prevHeight = (viewbox.height) || floorPlan.height;
 
-        let newX = event.clientX-mousePosition.domoffsetx;
-        let newY = event.clientY-mousePosition.domoffsety;
-        if(mousePosition.mousedown){
+        let newX = event.clientX - mousePosition.domoffsetx;
+        let newY = event.clientY - mousePosition.domoffsety;
+        if (mousePosition.mousedown) {
 
-            let diffX = (newX - mousePosition.x)/viewbox.zoom;
-            let diffY = (newY - mousePosition.y)/viewbox.zoom;
+            let diffX = (newX - mousePosition.x) / viewbox.zoom;
+            let diffY = (newY - mousePosition.y) / viewbox.zoom;
 
             let tempNewOffsetX = viewbox.offsetX - diffX;
             let tempNewOffsetY = viewbox.offsetY - diffY;
 
-            let {newOffsetX, newOffsetY } = offsetNormalizer(tempNewOffsetX,tempNewOffsetY);
+            let { newOffsetX, newOffsetY } = offsetNormalizer(tempNewOffsetX, tempNewOffsetY);
 
             let string = `${newOffsetX} ${newOffsetY} ${prevWidth} ${prevHeight}`;
 
@@ -188,7 +190,6 @@ export function RTLS({ width, height }) {
             let newObj = { ...viewbox, string, offsetX: newOffsetX, offsetY: newOffsetY }
             setViewbox(newObj)
         }
-        // debugger;
         mousePosition = { ...mousePosition, x: newX, y: newY };
     }
     // console.log('screenSizes',screenWidth,screenHeight);
@@ -221,16 +222,33 @@ export function RTLS({ width, height }) {
         }
 
     const isReSizing = false || (widthLatch != floorPlan.width);
-    if(isReSizing && widthLatch != 0){
-        let newWidth = (viewbox.width||floorPlan.width) * floorPlan.width/widthLatch
+    if (isReSizing && widthLatch != 0) {
+        let newWidth = (viewbox.width || floorPlan.width) * floorPlan.width / widthLatch
         let newHeight = newWidth * currentPlan.height_pixels / currentPlan.width_pixels
-        let newOffsetX = (viewbox.offsetX||0)*newWidth/viewbox.width;
-        let newOffsetY = (viewbox.offsetY||0)*newHeight/viewbox.height;
+        let newOffsetX = (viewbox.offsetX || 0) * newWidth / viewbox.width;
+        let newOffsetY = (viewbox.offsetY || 0) * newHeight / viewbox.height;
         let string = `${newOffsetX} ${newOffsetY} ${newWidth} ${newHeight}`;
-        let newObj = { ...viewbox, string, offsetX:newOffsetX, offsetY:newOffsetY, width:newWidth, height: newHeight}
+        let newObj = { ...viewbox, string, offsetX: newOffsetX, offsetY: newOffsetY, width: newWidth, height: newHeight }
         setViewbox(newObj)
     }
     widthLatch = floorPlan.width;
+
+
+    // if switching plans!!  -  
+    //  probably will move the viewbox to a redux state. So that it can be modified from external components!
+    // this block resets the viewbox to the initial zoom!
+    if (planLatch != currentPlan) {
+        let calcWidth = floorPlan.width/viewBoxInit.zoom;
+        let calcHeight = floorPlan.height/viewBoxInit.zoom;
+        let calcOffsetX = (floorPlan.width - calcWidth)/2;
+        let calcOffsetY = (floorPlan.height - calcHeight)/2;
+
+        let string = `${calcOffsetX} ${calcOffsetY} ${calcWidth} ${calcHeight}`
+        setViewbox({ ...viewBoxInit, string, width: calcWidth, height: calcHeight, offsetX: calcOffsetX, offsetY: calcOffsetY })
+        planLatch = currentPlan;
+    }
+
+
     // want to convert meters to pixels, so, figure out the conversion rate
     const pixelsPerMeter = floorPlan.width / currentPlan.width_meters;
 
@@ -258,23 +276,23 @@ export function RTLS({ width, height }) {
                 </Set>
 
             </Paper>
-            { zoomWindowSize &&
-            <div className={styles.zoomindicator}>
-                <div className={styles.zoomouter} style={{
-                    width:zoomWindowSize, 
-                    height:zoomWindowSize*floorPlan.height/floorPlan.width,
-                    backgroundImage:`url(${currentPlan.image})`,
-                    backgroundSize: `cover`
+            {zoomWindowSize &&
+                <div className={styles.zoomindicator}>
+                    <div className={styles.zoomouter} style={{
+                        width: zoomWindowSize,
+                        height: zoomWindowSize * floorPlan.height / floorPlan.width,
+                        backgroundImage: `url(${currentPlan.image})`,
+                        backgroundSize: `cover`
                     }}>
-                    <div className={styles.zoominner} style={{
-                        width:zoomWindowSize/viewbox.zoom, 
-                        height: zoomWindowSize*floorPlan.height/floorPlan.width/viewbox.zoom,
-                        left: zoomWindowSize*viewbox.offsetX/(viewbox.width||floorPlan.width)/viewbox.zoom,
-                        top: zoomWindowSize*viewbox.offsetY*floorPlan.height/floorPlan.width/(viewbox.height||floorPlan.height)/viewbox.zoom
+                        <div className={styles.zoominner} style={{
+                            width: zoomWindowSize / viewbox.zoom,
+                            height: zoomWindowSize * floorPlan.height / floorPlan.width / viewbox.zoom,
+                            left: zoomWindowSize * viewbox.offsetX / (viewbox.width || floorPlan.width) / viewbox.zoom,
+                            top: zoomWindowSize * viewbox.offsetY * floorPlan.height / floorPlan.width / (viewbox.height || floorPlan.height) / viewbox.zoom
                         }}>
+                        </div>
                     </div>
                 </div>
-            </div>
             }
         </div>
     </div>)

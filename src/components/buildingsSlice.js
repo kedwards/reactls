@@ -28,11 +28,21 @@ export const buildingsSlice = createSlice({
         state.currentPlan = state.plans[action.payload.firstPlan];
 
       }
-    }
+    },
+    setCurrentBuildingPlan:  (state,action) => { 
+      state.currentBuilding = state.buildings[action.payload.buildingId];
+      state.currentPlan = state.plans[action.payload.planId];
+    },
+    // setCurrentBuildingById: (state,action) => { 
+    //   state.currentBuilding = state.buildings[action.payload];
+    // },
+    // setCurrentPlanById: (state,action) => { 
+    //   state.currentPlan = state.plans[action.payload];
+    // }
   },
 });
 
-export const { setBuildings, setPlans, setInitBuildingPlan } = buildingsSlice.actions;
+export const { setBuildings, setPlans, setInitBuildingPlan, setCurrentBuildingPlan} = buildingsSlice.actions;
 
 // The function below is called a selector and allows us to select a value from
 // the state. Selectors can also be defined inline where they're used instead of
@@ -71,6 +81,7 @@ export const fetchBuildings = ({token}) => async dispatch => {
         Object.assign(p,dimensions);
         p.width_meters = p.width_pixels / p.scale;
         p.height_meters = p.height_pixels / p.scale;
+        p.buildingId = b.id;
 
         plans[p.id] = p;
         if (!firstPlan) {
