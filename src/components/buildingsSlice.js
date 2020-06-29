@@ -62,7 +62,7 @@ export const selectCurrentBuilding = state => state.buildings.currentBuilding;
 // initializes once at login/checksessionlogin
 export const fetchBuildings = ({token}) => async dispatch => {
     let tagsInSocketAwaiter = Helper.get_v2({}, apiPath.tag_activity, {token});
-    let buildingsRequestAwaiter = await Helper.get({}, apiPath.buildings, {token});
+    let buildingsRequestAwaiter = Helper.get({}, apiPath.buildings, {token});
     let tagsInSocket = await tagsInSocketAwaiter;
     let buildingsRequest = await buildingsRequestAwaiter;
     
