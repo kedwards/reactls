@@ -42,9 +42,9 @@ export const tagsSlice = createSlice({
 export const selectTags = state => state.tags.tags;
 export const selectUpdatePeriod = state => overRideMovementperiod ? overRideMovementperiod : state.tags.updatePeriod;
 export const getTags = ({currentBuilding,currentPlan, tagsInSocket}) => {
+    // return tags;
     return Object.keys(tags)
       .filter(key => {
-          debugger;
           return tagsInSocket[key] && tagsInSocket[key].location && tagsInSocket[key].location.ele == currentPlan.name && tagsInSocket[key].location.name == currentBuilding.title;
         })
       .reduce((obj, key) => {

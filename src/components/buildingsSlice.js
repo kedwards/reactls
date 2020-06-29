@@ -68,7 +68,6 @@ export const fetchBuildings = ({token}) => async dispatch => {
     
     let response = await buildingsRequest.response;
     let json = await response.json();
-    debugger;
 
     let buildings = {}
 
