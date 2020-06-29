@@ -3,7 +3,7 @@ let Config = {
   ZOOM_PAN_LIMIT:10, // meters- limit bounds of panning
   ZOOM_OUT_LIMIT: 0.5, // zoom magnification.  (lower is more zoomed out)
   ZOOM_IN_LIMIT: 3, // meters- number of meters that the full screen of the device will show, lower is more zoomed in
-  ZOOM_INIT:0.95, // initial magnification. 1 == exact fit.  lower == more zoomed out
+  ZOOM_INIT:0.9, // initial magnification. 1 == exact fit.  lower == more zoomed out
 
   DEFAULT_TAG_TYPE: "tag",
   DEFAULT_PADDING_X: 10,

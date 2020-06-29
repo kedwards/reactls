@@ -11,7 +11,7 @@ import {
 } from './tagsSlice';
 
 import {
-    selectBuildings, selectCurrentBuilding, selectCurrentPlan, selectPlanUrl
+    selectBuildings, selectCurrentBuilding, selectCurrentPlan, selectTagsInSocket, selectPlanUrl
 } from './buildingsSlice';
 import { isBuffer } from 'lodash';
 
@@ -33,11 +33,12 @@ let mousePosition = { x: 0, y: 0, domoffsetx: 0, domoffsety: 0, mousedown: false
 
 export function RTLS({ width, height }) {
     const dispatch = useDispatch();
-    const tags = getTags();
     const updateTrigger = useSelector(getTagsTrigger)
     const buildings = useSelector(selectBuildings);
     const currentBuilding = useSelector(selectCurrentBuilding);
     const currentPlan = useSelector(selectCurrentPlan);
+    const tagsInSocket = useSelector(selectTagsInSocket);
+    const tags = getTags({currentPlan,currentBuilding, tagsInSocket});
     const animationPeriod = useSelector(selectUpdatePeriod);
     const domRef = useRef();
     const screenWidth = width;
@@ -195,7 +196,6 @@ export function RTLS({ width, height }) {
     // console.log('screenSizes',screenWidth,screenHeight);
 
     // Performance purpose TODO-  remove this true!
-
     useEffect(() => {
         // ReactDOM = 
         if (domRef.current) {

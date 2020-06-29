@@ -25,7 +25,6 @@ export function TopNavBar() {
     const dispatch = useDispatch();
 
     let location = useLocation();
-    console.log(location.pathname);
  
 
 

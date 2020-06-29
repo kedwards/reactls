@@ -12,7 +12,8 @@ export const buildingsSlice = createSlice({
     buildings: {},
     plans: {},
     currentBuilding: null,
-    currentPlan: null
+    currentPlan: null,
+    tagsInSocket:{}
   },
   reducers: {
     setPlans: (state, action) =>{
@@ -21,6 +22,9 @@ export const buildingsSlice = createSlice({
     },
     setBuildings: (state,action) => {
       state.buildings = action.payload;
+    },
+    setTagsInSocket: (state,action) =>{
+      state.tagsInSocket = action.payload;
     },
     setInitBuildingPlan: (state,action) =>{
       if(!state.currentBuilding){  // might already be persisted via redux-persist
@@ -42,7 +46,7 @@ export const buildingsSlice = createSlice({
   },
 });
 
-export const { setBuildings, setPlans, setInitBuildingPlan, setCurrentBuildingPlan} = buildingsSlice.actions;
+export const { setBuildings, setPlans, setInitBuildingPlan, setCurrentBuildingPlan, setTagsInSocket} = buildingsSlice.actions;
 
 // The function below is called a selector and allows us to select a value from
 // the state. Selectors can also be defined inline where they're used instead of
@@ -50,14 +54,21 @@ export const { setBuildings, setPlans, setInitBuildingPlan, setCurrentBuildingPl
 export const selectBuildings = state => state.buildings.buildings;
 export const selectPlans = state=> state.buildings.plans;
 export const selectCurrentPlan = state => state.buildings.currentPlan;
+export const selectTagsInSocket = state => state.buildings.tagsInSocket;
 
 export const selectCurrentBuilding = state => state.buildings.currentBuilding;
 
 
+// initializes once at login/checksessionlogin
 export const fetchBuildings = ({token}) => async dispatch => {
-    let buildingsRequest = await Helper.get({}, apiPath.buildings, {token});
+    let tagsInSocketAwaiter = Helper.get_v2({}, apiPath.tag_activity, {token});
+    let buildingsRequestAwaiter = await Helper.get({}, apiPath.buildings, {token});
+    let tagsInSocket = await tagsInSocketAwaiter;
+    let buildingsRequest = await buildingsRequestAwaiter;
+    
     let response = await buildingsRequest.response;
     let json = await response.json();
+    debugger;
 
     let buildings = {}
 
@@ -96,6 +107,7 @@ export const fetchBuildings = ({token}) => async dispatch => {
     dispatch(setBuildings(buildings));
     dispatch(setPlans(plans));
     dispatch(setInitBuildingPlan({firstBuilding, firstPlan}))
+    dispatch(setTagsInSocket(tagsInSocket))
 };
 
 

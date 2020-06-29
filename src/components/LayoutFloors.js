@@ -26,7 +26,7 @@ export function LayoutFloors() {
 
     return (
         
-        <div id="layoutSidenav_floors" style={{background: "none"}}>
+        <div id="layoutSidenav_floors" style={{background: "white"}}>
             <button className={styles.tab}
                 onClick={ ()=> dispatch(togglefloors())}
             >

@@ -41,7 +41,17 @@ export const tagsSlice = createSlice({
 // export const setDrawingTrue = () => busyDrawingFlag = true;
 export const selectTags = state => state.tags.tags;
 export const selectUpdatePeriod = state => overRideMovementperiod ? overRideMovementperiod : state.tags.updatePeriod;
-export const getTags = () => tags;
+export const getTags = ({currentBuilding,currentPlan, tagsInSocket}) => {
+    return Object.keys(tags)
+      .filter(key => {
+          debugger;
+          return tagsInSocket[key] && tagsInSocket[key].location && tagsInSocket[key].location.ele == currentPlan.name && tagsInSocket[key].location.name == currentBuilding.title;
+        })
+      .reduce((obj, key) => {
+        obj[key] = tags[key];
+        return obj;
+      }, {});
+};
 export const getTagsTrigger = state => state.tags.update;
 
 export const passDispatchReference = (dref) =>{
@@ -54,13 +64,23 @@ export const handleWebsocketMessage = (m) =>{
 
     let payload = JSON.parse(m.data);
     let obj = null;
+    
+    // everything is handling only tags at this point.
+    // debugger;
+
+    // break out if missing stuff, {currentBuilding, currentPlan}
+    // if(!currentBuilding || !currentPlan || !payload.location || payload.location.ele !== currentPlan.name){ 
+    //     return
+    // }
+    
+
+
     if (payload.datastreams) {
         obj = {
             id: payload.id,
             x: Number(payload.datastreams[0].current_value),
             y: Number(payload.datastreams[1].current_value)
         }
-
     }
 
     // let disabled = true;  // This makes it run FAST!!! - slowdown comes from updating state!!!
@@ -77,15 +97,16 @@ export const handleWebsocketMessage = (m) =>{
 
         if ( (forceFlush || rightNow > (lastUpdate + batchPeriod)) ) {  // createTimeout/update if needed.
             // busyDrawingFlag = true;
-            console.log('busyDrawing', true);
+            // console.log('busyDrawing', true);
             lastUpdate = rightNow;
-            let updateObject = {};
 
-            for(const [key, tag] of Object.entries(tags)){
+            //update existing tags to not repeat moving
+            for(const [key, tag] of Object.entries(tags)){ 
                 if(!tagBuffer[key] && (tag.prevX !== tag.x || tag.prevY!==tag.y)){
                     tags[key] = Object.assign({},tag,{ prevX:tag.x, prevY:tag.y })
                 }
             }
+            // add or update new ones
             for(const [key, o] of Object.entries(tagBuffer)){
                 tags[key] = Object.assign({},tags[key] || { id: key },{ prevX: tags[key]?tags[key].x : Number(o.x), prevY: tags[key] ? tags[key].y : Number(o.y), x: Number(o.x), y: Number(o.y), z:Number(0)})
             }

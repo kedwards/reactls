@@ -11,7 +11,7 @@ import Helper from './constants/helper';
 
 import {  selectLoggedIn,selectUsername, selectToken, setloggingin, setloggedin, setLoggedOut} from './components/authenticationSlice';
 import {  passDispatchReference, handleWebsocketMessage } from './components/tagsSlice';
-import { fetchBuildings } from './components/buildingsSlice';
+import { fetchBuildings, selectCurrentBuilding, selectCurrentPlan } from './components/buildingsSlice';
 
 import ReconnectingWebSocket from 'reconnecting-websocket';
 
@@ -20,11 +20,12 @@ import ReconnectingWebSocket from 'reconnecting-websocket';
 import './App.scss';
 require('dotenv').config();
 
+// let currentBuildingRef = null,currentPlanRef = null;
 let rws = null; // websocket reference
 export const initWebsocket = () =>{
   rws = new ReconnectingWebSocket(process.env.REACT_APP_API_WEBSOCKET_URL);
   rws.addEventListener('message', (m) => {
-    handleWebsocketMessage(m);
+    handleWebsocketMessage(m); //, {currentBuilding: currentBuildingRef, currentBuilding: currentBuildingRef}
   });
 }
 
@@ -43,6 +44,10 @@ export const killWebsocket = () =>{
 function App() {
   let isAuthenticated = useSelector(selectLoggedIn);
   const token = useSelector(selectToken);
+  const currentBuilding = useSelector(selectCurrentBuilding);
+  // currentBuildingRef = currentBuilding;
+  const currentPlan = useSelector(selectCurrentPlan);
+  // currentPlanRef = currentPlan;
   const dispatch = useDispatch();
   
   useEffect(() => {
