@@ -204,6 +204,27 @@ export function RTLS({ width, height }) {
             mousePosition.domoffsetx = boundingRect.x;
             mousePosition.domoffsety = boundingRect.y;
         }
+        // debugger;
+        // var defs = document.createElementNS("http://www.w3.org/2000/svg", 'defs')
+        // defs.setAttribute("id","f21");
+        // var filter = document.createElementNS("http://www.w3.org/2000/svg", "filter");
+        // filter.setAttribute("id","f1");
+        // filter.setAttribute("x","0");
+        // filter.setAttribute("y","0");
+        // defs.appendChild(filter);
+
+
+        // let filter = document.createElementNS(domRef.current.namespaceURI, 'filter')
+        // defs.appendChild(filter)
+//         `<defs>
+//     <filter x="0" y="0" width="1" height="1" id="solid">
+//     <feFlood flood-color="yellow"/>
+//     <feComposite in="SourceGraphic" operator="xor" />
+//     </filter>
+// </defs>`
+        domRef.current.appendChild(defs)
+
+        
     }, [])
 
     if (!currentPlan || screenHeight === undefined || screenWidth === undefined) {
@@ -256,11 +277,12 @@ export function RTLS({ width, height }) {
 
     const scaledFromOriginal = floorPlan.width / currentPlan.width_pixels  // originX/originY is specified in pixels relative to the orignal image size!
 
-
+    const labelOffsetY = 20;
 
     return (<div className={styles.layout} onWheel={scrollHandler} onMouseMove={moveHandler} onMouseDown={mouseDownHandler} onMouseUp={mouseUpHandler} onMouseLeave={mouseUpHandler}>
         <div className={styles.mapwrapper}>
-            <Paper ref={domRef} width={floorPlan.width} height={floorPlan.height} viewbox={viewbox.string ? viewbox.string : undefined}>
+            {/* {JSON.stringify(tags)} */}
+            <Paper key={0} ref={domRef} width={floorPlan.width} height={floorPlan.height} viewbox={viewbox.string ? viewbox.string : undefined}>
                 <Set>
                     <Image src={currentPlan.image} x={0} y={0} width={floorPlan.width} height={floorPlan.height} />
                     {
@@ -270,14 +292,23 @@ export function RTLS({ width, height }) {
                         //     return (<Circle key={ele.id} x={(currentPlan.originX*scaledFromOriginal) + (ele.prevX * pixelsPerMeter)} y={(currentPlan.originY*scaledFromOriginal) + (ele.prevY * pixelsPerMeter)} r={10}  attr={{ "stroke": "#e11032", "stroke-width": 5 }} />)
                         // }) :
                         Object.entries(tags).map(([key, ele]) => {
-                            return (<Circle key={ele.id} x={(currentPlan.originX * scaledFromOriginal) + (ele.prevX * pixelsPerMeter)} y={(currentPlan.originY * scaledFromOriginal) + (ele.prevY * pixelsPerMeter)} r={10} animate={Raphael.animation({ cx: (currentPlan.originX * scaledFromOriginal) + (ele.x * pixelsPerMeter), cy: (currentPlan.originY * scaledFromOriginal) + (ele.y * pixelsPerMeter) }, animationPeriod, '<>')} attr={{ "stroke": "#e11032", "stroke-width": 5 }} />)
+                            return (
+                                <Circle key={ele.id} x={(currentPlan.originX * scaledFromOriginal) + (ele.prevX * pixelsPerMeter)} y={(currentPlan.originY * scaledFromOriginal) + (ele.prevY * pixelsPerMeter)} r={10} animate={Raphael.animation({ cx: (currentPlan.originX * scaledFromOriginal) + (ele.x * pixelsPerMeter), cy: (currentPlan.originY * scaledFromOriginal) + (ele.y * pixelsPerMeter) }, animationPeriod, '<>')} attr={{ "stroke": "#e11032", "stroke-width": 5 }} />
+                                )
+                        })
+                    }
+                    {
+                        Object.entries(tags).map(([key, ele]) => {
+                            return (
+                                <Text key={ele.id+10000000} x={(currentPlan.originX * scaledFromOriginal) + (ele.prevX * pixelsPerMeter)} y={labelOffsetY + (currentPlan.originY * scaledFromOriginal) + (ele.prevY * pixelsPerMeter)} animate={Raphael.animation({ x: (currentPlan.originX * scaledFromOriginal) + (ele.x * pixelsPerMeter), y: labelOffsetY + (currentPlan.originY * scaledFromOriginal) + (ele.y * pixelsPerMeter) }, animationPeriod, '<>')} text={tagsInSocket[ele.id].alias || tagsInSocket[ele.id].title } attr={{"filter":"url(#solid)", "fill":"#000"}}/>
+                            )
                         })
                     }
                 </Set>
 
             </Paper>
             {zoomWindowSize &&
-                <div className={styles.zoomindicator}>
+                <div key={1} className={styles.zoomindicator}>
                     <div className={styles.zoomouter} style={{
                         width: zoomWindowSize,
                         height: zoomWindowSize * floorPlan.height / floorPlan.width,
