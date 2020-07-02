@@ -11,7 +11,7 @@ import {
 } from './tagsSlice';
 
 import {
-    selectBuildings, selectCurrentBuilding, selectCurrentPlan, selectTagsInSocket, selectPlanUrl
+    selectBuildings, selectCurrentBuilding, selectCurrentPlan, selectTagsInSocket, selectPlanUrl, selectFeeds
 } from './buildingsSlice';
 import { isBuffer } from 'lodash';
 
@@ -38,7 +38,8 @@ export function RTLS({ width, height }) {
     const currentBuilding = useSelector(selectCurrentBuilding);
     const currentPlan = useSelector(selectCurrentPlan);
     const tagsInSocket = useSelector(selectTagsInSocket);
-    const tags = getTags({currentPlan,currentBuilding, tagsInSocket});
+    const feeds = useSelector(selectFeeds);
+    const tags = getTags({currentPlan,currentBuilding, feeds});
     const animationPeriod = useSelector(selectUpdatePeriod);
     const domRef = useRef();
     const screenWidth = width;
@@ -222,7 +223,7 @@ export function RTLS({ width, height }) {
 //     <feComposite in="SourceGraphic" operator="xor" />
 //     </filter>
 // </defs>`
-        domRef.current.appendChild(defs)
+        // domRef.current.appendChild(defs)
 
         
     }, [])
@@ -257,6 +258,7 @@ export function RTLS({ width, height }) {
 
     // if switching plans!!  -  
     //  probably will move the viewbox to a redux state. So that it can be modified from external components!
+    // still better doing it here though, than at every possible trigger
     // this block resets the viewbox to the initial zoom!
     if (planLatch != currentPlan) {
         let calcWidth = floorPlan.width/viewBoxInit.zoom;
@@ -292,6 +294,7 @@ export function RTLS({ width, height }) {
                         //     return (<Circle key={ele.id} x={(currentPlan.originX*scaledFromOriginal) + (ele.prevX * pixelsPerMeter)} y={(currentPlan.originY*scaledFromOriginal) + (ele.prevY * pixelsPerMeter)} r={10}  attr={{ "stroke": "#e11032", "stroke-width": 5 }} />)
                         // }) :
                         Object.entries(tags).map(([key, ele]) => {
+
                             return (
                                 <Circle key={ele.id} x={(currentPlan.originX * scaledFromOriginal) + (ele.prevX * pixelsPerMeter)} y={(currentPlan.originY * scaledFromOriginal) + (ele.prevY * pixelsPerMeter)} r={10} animate={Raphael.animation({ cx: (currentPlan.originX * scaledFromOriginal) + (ele.x * pixelsPerMeter), cy: (currentPlan.originY * scaledFromOriginal) + (ele.y * pixelsPerMeter) }, animationPeriod, '<>')} attr={{ "stroke": "#e11032", "stroke-width": 5 }} />
                                 )
@@ -300,8 +303,17 @@ export function RTLS({ width, height }) {
                     {
                         Object.entries(tags).map(([key, ele]) => {
                             return (
-                                <Text key={ele.id+10000000} x={(currentPlan.originX * scaledFromOriginal) + (ele.prevX * pixelsPerMeter)} y={labelOffsetY + (currentPlan.originY * scaledFromOriginal) + (ele.prevY * pixelsPerMeter)} animate={Raphael.animation({ x: (currentPlan.originX * scaledFromOriginal) + (ele.x * pixelsPerMeter), y: labelOffsetY + (currentPlan.originY * scaledFromOriginal) + (ele.y * pixelsPerMeter) }, animationPeriod, '<>')} text={tagsInSocket[ele.id].alias || tagsInSocket[ele.id].title } attr={{"filter":"url(#solid)", "fill":"#000"}}/>
+                                <Text key={ele.id+1000000} x={(currentPlan.originX * scaledFromOriginal) + (ele.prevX * pixelsPerMeter)} y={labelOffsetY + (currentPlan.originY * scaledFromOriginal) + (ele.prevY * pixelsPerMeter)} animate={Raphael.animation({ x: (currentPlan.originX * scaledFromOriginal) + (ele.x * pixelsPerMeter), y: labelOffsetY + (currentPlan.originY * scaledFromOriginal) + (ele.y * pixelsPerMeter) }, animationPeriod, '<>')} text={tagsInSocket[ele.id].alias || tagsInSocket[ele.id].title } attr={{"filter":"url(#solid)", "fill":"#000"}}/>
                             )
+                        })
+                    }
+                    {
+                        Object.entries(tags).map(([key, ele]) => {
+                            return (
+                                <Image key={ele.id+2000000} src="assets/img/pin_person.svg" x={100} y={170} width={90} height={60} />
+                            
+
+                                )
                         })
                     }
                 </Set>

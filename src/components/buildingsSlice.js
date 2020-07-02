@@ -13,7 +13,8 @@ export const buildingsSlice = createSlice({
     plans: {},
     currentBuilding: null,
     currentPlan: null,
-    tagsInSocket:{}
+    tagsInSocket:{},
+    feeds: {}
   },
   reducers: {
     setPlans: (state, action) =>{
@@ -25,6 +26,9 @@ export const buildingsSlice = createSlice({
     },
     setTagsInSocket: (state,action) =>{
       state.tagsInSocket = action.payload;
+    },
+    setFeeds: (state,action)=>{
+      state.feeds = action.payload
     },
     setInitBuildingPlan: (state,action) =>{
       if(!state.currentBuilding){  // might already be persisted via redux-persist
@@ -46,7 +50,7 @@ export const buildingsSlice = createSlice({
   },
 });
 
-export const { setBuildings, setPlans, setInitBuildingPlan, setCurrentBuildingPlan, setTagsInSocket} = buildingsSlice.actions;
+export const { setBuildings, setPlans, setInitBuildingPlan, setCurrentBuildingPlan, setTagsInSocket, setFeeds } = buildingsSlice.actions;
 
 // The function below is called a selector and allows us to select a value from
 // the state. Selectors can also be defined inline where they're used instead of
@@ -55,17 +59,31 @@ export const selectBuildings = state => state.buildings.buildings;
 export const selectPlans = state=> state.buildings.plans;
 export const selectCurrentPlan = state => state.buildings.currentPlan;
 export const selectTagsInSocket = state => state.buildings.tagsInSocket;
+export const selectFeeds = state => state.buildings.feeds;
 
 export const selectCurrentBuilding = state => state.buildings.currentBuilding;
 
 
 // initializes once at login/checksessionlogin
 export const fetchBuildings = ({token}) => async dispatch => {
+
+    let perPage = 25;
+    let page = 1;
+    let feedsAwaiter = Helper.get_v2({ page: 1, user: '', tag:'', q:'', per_page: perPage, _: Date.now()}, apiPath.feeds,{token});
+    // user=&tag=&q=&per_page=500&_=1593723060943
+
     let tagsInSocketAwaiter = Helper.get_v2({}, apiPath.tag_activity, {token});
+
     let buildingsRequestAwaiter = Helper.get({}, apiPath.buildings, {token});
     let tagsInSocket = await tagsInSocketAwaiter;
     let buildingsRequest = await buildingsRequestAwaiter;
-    
+
+    let feedResults = await feedsAwaiter;
+    let feeds = feedResults.results.reduce((m,f)=>{
+      m[f.id] = f
+      return m
+    },{})
+
     let response = await buildingsRequest.response;
     let json = await response.json();
 
@@ -107,6 +125,7 @@ export const fetchBuildings = ({token}) => async dispatch => {
     dispatch(setPlans(plans));
     dispatch(setInitBuildingPlan({firstBuilding, firstPlan}))
     dispatch(setTagsInSocket(tagsInSocket))
+    dispatch(setFeeds(feeds))
 };
 
 

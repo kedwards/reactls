@@ -41,11 +41,11 @@ export const tagsSlice = createSlice({
 // export const setDrawingTrue = () => busyDrawingFlag = true;
 export const selectTags = state => state.tags.tags;
 export const selectUpdatePeriod = state => overRideMovementperiod ? overRideMovementperiod : state.tags.updatePeriod;
-export const getTags = ({currentBuilding,currentPlan, tagsInSocket}) => {
+export const getTags = ({currentBuilding,currentPlan, feeds}) => {
     // return tags;
     return Object.keys(tags)
       .filter(key => {
-          return tagsInSocket[key] && tagsInSocket[key].location && tagsInSocket[key].location.ele == currentPlan.name && tagsInSocket[key].location.name == currentBuilding.title;
+          return feeds[key] && feeds[key].location && feeds[key].location.ele == currentPlan.name;// && tagsInSocket[key].location.name == currentBuilding.title;
         })
       .reduce((obj, key) => {
         obj[key] = tags[key];
