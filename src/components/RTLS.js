@@ -46,6 +46,7 @@ let resizingTimoutHandle = null
 
 let planLatch = null;
 let widthLatch = 0;
+let heightLatch = 0;
 
 let mousePosition = { x: 0, y: 0, domoffsetx: 0, domoffsety: 0, mousedown: false };
 let oldData = null;
@@ -101,8 +102,8 @@ export function RTLS({ width, height }) {
         }
 
 
-        let percentMouseX = mousePosition.x / floorPlan.width;
-        let percentMouseY = mousePosition.y / floorPlan.height;
+        let percentMouseX = mousePosition.x / screenWidth;
+        let percentMouseY = mousePosition.y / screenHeight;
         // console.log('mousePercent',percentMouseX,percentMouseY)
         // debugger;
 
@@ -233,7 +234,7 @@ export function RTLS({ width, height }) {
         }) : { width: screenWidth, height: screenHeight }
 
 
-    const isReSizing = false || (widthLatch != floorPlan.width);  // flickery variable!!! - happens once per render
+    const isReSizing = false || (widthLatch != floorPlan.width) || (heightLatch != screenHeight);  // flickery variable!!! - happens once per render
 
     if(isReSizing){
         resizingLatch = true
@@ -241,14 +242,12 @@ export function RTLS({ width, height }) {
             clearTimeout(resizingTimoutHandle);
             resizingTimoutHandle = null;
         }
-        
         resizingTimoutHandle = setTimeout(()=>{
             resizingLatch = false
-        },200)
+        },50)
     }
     const isReSizingDebounced = resizingLatch
 
-    console.log('isReSizingDebounced',isReSizingDebounced)
     if (isReSizing && widthLatch != 0) {
         let newWidth = (viewbox.width || floorPlan.width) * floorPlan.width / widthLatch
         let newHeight = currentPlan ? newWidth * currentPlan.height_pixels / currentPlan.width_pixels : screenHeight
@@ -259,6 +258,7 @@ export function RTLS({ width, height }) {
         setViewbox(newObj)
     }
     widthLatch = floorPlan.width;
+    heightLatch = screenHeight;
 
 
     useEffect(() => {
@@ -298,10 +298,10 @@ export function RTLS({ width, height }) {
 
     const labelOffsetY = 10;
 
-    return (<div className={styles.layout} onWheel={scrollHandler} onMouseMove={moveHandler} onMouseDown={mouseDownHandler} onMouseUp={mouseUpHandler} onMouseLeave={mouseUpHandler}>
+    return (<div id="rtls-div" className={styles.layout} onWheel={scrollHandler} onMouseMove={moveHandler} onMouseDown={mouseDownHandler} onMouseUp={mouseUpHandler} onMouseLeave={mouseUpHandler}>
         <div className={styles.mapwrapper}>
             {/* {JSON.stringify(tags)} */}
-            <Paper key={0} ref={domRef} width={floorPlan.width} height={floorPlan.height} viewbox={viewbox.string ? viewbox.string : undefined}>
+            <Paper key={0} ref={domRef} width={screenWidth} height={screenHeight} viewbox={viewbox.string ? viewbox.string : undefined}>
                 <Set>
                     <Image src={currentPlan.image} x={0} y={0} width={floorPlan.width} height={floorPlan.height} />
                     {/* {
@@ -327,7 +327,7 @@ export function RTLS({ width, height }) {
                     }  */}
                     {
                         
-                        isReSizingDebounced && Object.entries(tags).map(([key, ele]) => {
+                        !isReSizingDebounced && Object.entries(tags).map(([key, ele]) => {
                             return  !mousePosition.mousedown ? (
                                 <Path key={ele.id + 300000} ref={pathRef} d={(appConfig.PIN_PERSON.path)}
                                     attr={{

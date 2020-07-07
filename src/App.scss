@@ -1,3 +1,5 @@
+$transition-speed: 0.35s;
+
 .fixed-top, .nav-fixed #layoutSidenav #layoutSidenav_nav, .nav-fixed .topnav  {
   position: fixed;
   top: 0;
@@ -17,8 +19,8 @@
 .nav-fixed #layoutSidenav #layoutSidenav_info{
   position: fixed;
   bottom: 0;
-  left: 0;
   right: 0;
+  left: 0;
   z-index: 1038;
   min-height: 15rem;
 }
@@ -30,10 +32,10 @@
 #layoutSidenav #layoutSidenav_nav {
   flex-basis: 15rem;
   flex-shrink: 0;
-  -webkit-transition: -webkit-transform 0.15s ease-in-out;
-  transition: -webkit-transform 0.15s ease-in-out;
-  transition: transform 0.15s ease-in-out;
-  transition: transform 0.15s ease-in-out, -webkit-transform 0.15s ease-in-out;
+  -webkit-transition: -webkit-transform $transition-speed ease-in-out;
+  transition: -webkit-transform $transition-speed ease-in-out;
+  transition: transform $transition-speed ease-in-out;
+  transition: transform $transition-speed ease-in-out, -webkit-transform $transition-speed ease-in-out;
   z-index: 1038;
   -webkit-transform: translateX(-15rem);
           transform: translateX(-15rem);
@@ -45,10 +47,10 @@
 #layoutSidenav #layoutSidenav_floors, #layoutSidenav #layoutSidenav_counts {
   flex-basis: 15rem;
   flex-shrink: 0;
-  -webkit-transition: -webkit-transform 0.15s ease-in-out;
-  transition: -webkit-transform 0.15s ease-in-out;
-  transition: transform 0.15s ease-in-out;
-  transition: transform 0.15s ease-in-out, -webkit-transform 0.15s ease-in-out;
+  -webkit-transition: -webkit-transform $transition-speed ease-in-out;
+  transition: -webkit-transform $transition-speed ease-in-out;
+  transition: transform $transition-speed ease-in-out;
+  transition: transform $transition-speed ease-in-out, -webkit-transform $transition-speed ease-in-out;
   z-index: 1038;
   -webkit-transform: translateX(15rem);
           transform: translateX(15rem);
@@ -57,13 +59,25 @@
 #layoutSidenav #layoutSidenav_info {
   flex-basis: 15rem;
   flex-shrink: 0;
-  -webkit-transition: -webkit-transform 0.15s ease-in-out;
-  transition: -webkit-transform 0.15s ease-in-out;
-  transition: transform 0.15s ease-in-out;
-  transition: transform 0.15s ease-in-out, -webkit-transform 0.15s ease-in-out;
+  -webkit-transition: -webkit-transform $transition-speed ease-in-out, left $transition-speed ease-in-out, right $transition-speed ease-in-out;
+  // transition: -webkit-transform $transition-speed ease-in-out;
+  // transition: transform $transition-speed ease-in-out;
+  transition: transform $transition-speed ease-in-out, -webkit-transform $transition-speed ease-in-out, left $transition-speed ease-in-out, right $transition-speed ease-in-out;
   z-index: 1038;
+
+  // transition: left $transition-speed ease-in-out;
+  // -webkit-transition: left $transition-speed ease-in-out;
   -webkit-transform: translateY(15rem);
           transform: translateY(15rem);
+}
+
+#layoutSidenav #layoutSidenav_content main #rtls-div{
+  -webkit-transition: -webkit-transform $transition-speed ease-in-out, height $transition-speed ease-in-out;
+  // transition: -webkit-transform $transition-speed ease-in-out;
+  // transition: transform $transition-speed ease-in-out;
+  transition: transform $transition-speed ease-in-out, -webkit-transform $transition-speed ease-in-out, height $transition-speed ease-in-out;
+  background: white;
+
 }
 
 
@@ -83,8 +97,8 @@
   min-height: calc(100vh - 3.625rem);
   margin-left: -15rem;
 
-  -webkit-transition: margin 0.15s ease-in-out;
-  transition: margin 0.15s ease-in-out;
+  -webkit-transition: margin $transition-speed ease-in-out;
+  transition: margin $transition-speed ease-in-out;
 }
 
 .sidenav-toggled #layoutSidenav #layoutSidenav_nav {
@@ -97,9 +111,6 @@
           transform: translateX(0rem);
 }
 
-#layoutSidenav #layoutSidenav_info {
-  
-}
 
 .info-toggled #layoutSidenav #layoutSidenav_info {
   -webkit-transform: translateY(0rem);
@@ -150,9 +161,19 @@
             transform: translateX(-15rem);
   }
 
-
   .nav-fixed #layoutSidenav #layoutSidenav_info{
-    z-index: 1037;
+    left: 15rem;
+  }
+  .nav-fixed.sidenav-toggled #layoutSidenav #layoutSidenav_info{
+    left: 0rem;
+  }
+
+  .floors-toggled #layoutSidenav #layoutSidenav_info, .counts-toggled #layoutSidenav #layoutSidenav_info{
+    right: 15rem;
+  }
+
+  .floors-toggled.counts-toggled #layoutSidenav #layoutSidenav_info{
+    right: 30rem;
   }
 
   .sidenav-toggled #layoutSidenav #layoutSidenav_content {
@@ -191,6 +212,12 @@
     -webkit-transform: translateX(-15rem);
             transform: translateX(-15rem);
   }
+
+  .info-toggled #layoutSidenav #layoutSidenav_content main #rtls-div{
+    // min-height: calc(100vh - 3.625rem - 15rem);
+    height: calc(100vh - 3.625rem - 15rem);
+  }
+
 
 }
 
