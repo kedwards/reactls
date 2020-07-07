@@ -8,6 +8,7 @@ let tagBuffer = {};
 let lastUpdate = Date.now();
 let tags = {};
 let dispatch = null;
+let panning = false;
 
 // let busyDrawingFlag = true;
 
@@ -45,7 +46,7 @@ export const getTags = ({currentBuilding,currentPlan, feeds}) => {
     // return tags;
     return Object.keys(tags)
       .filter(key => {
-          return feeds[key] && feeds[key].location && feeds[key].location.ele == currentPlan.name;// && tagsInSocket[key].location.name == currentBuilding.title;
+          return true || feeds[key] && feeds[key].location && feeds[key].location.ele == currentPlan.name;// && tagsInSocket[key].location.name == currentBuilding.title;
         })
       .reduce((obj, key) => {
         obj[key] = tags[key];
@@ -58,7 +59,17 @@ export const passDispatchReference = (dref) =>{
     dispatch = dref
 }
 
+export const setPanning = (state)=>{
+    console.log('setPanning',state);
+    panning = state;
+}
+
 export const handleWebsocketMessage = (m) =>{
+    // this can be moved down. TODO- dont update tag origin while panning,
+    if(panning) //avoids dispatching re-renders while panning
+        return
+
+
     let rightNow = Date.now();
     let forceFlush = false;   //used to guarentee steps aren't missed
 
@@ -118,7 +129,10 @@ export const handleWebsocketMessage = (m) =>{
                 tagBuffer[obj.id] = obj;
             }
 
+            // if(!panning){
             dispatch(tagsSlice.actions.pushTagsUpdate());
+
+            // }
         }
     }
 }

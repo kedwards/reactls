@@ -97,10 +97,16 @@
           transform: translateX(0rem);
 }
 
+#layoutSidenav #layoutSidenav_info {
+  
+}
+
 .info-toggled #layoutSidenav #layoutSidenav_info {
   -webkit-transform: translateY(0rem);
           transform: translateY(0rem);
 }
+
+
 
 // .floors-toggled #layoutSidenav #layoutSidenav_floors{
 //   -webkit-transform: translateX(0);
@@ -308,4 +314,11 @@
 
 .react-raphael{
   background: white;
+}
+
+#layoutSidenav_nav{
+  -webkit-user-select: none; /* Safari */        
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* IE10+/Edge */
+  user-select: none; /* Standard */
 }

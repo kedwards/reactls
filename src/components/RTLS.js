@@ -4,10 +4,11 @@ import ReactDOM from 'react-dom';
 import styles from './rtls.module.css';
 import Helper from '../constants/helper';
 import appConfig from '../constants/config';
+import pinPerson from '../assets/img/pin_person.svg';
 
 
 import {
-    selectTags, selectUpdatePeriod, getTags, getTagsTrigger//, setDrawingFalse, setDrawingTrue
+    selectTags, selectUpdatePeriod, getTags, getTagsTrigger, setPanning//, setDrawingFalse, setDrawingTrue
 } from './tagsSlice';
 
 import {
@@ -15,6 +16,20 @@ import {
 } from './buildingsSlice';
 import { isBuffer } from 'lodash';
 
+
+
+// pre-scale svgs
+// const calcSvg = (entry,x,y)=>{
+for (let [key, entry] of Object.entries(appConfig)) {
+    if (entry.w && entry.path_x && entry.path) {
+        entry.path = entry.path.toString().replace(/\d*\.?\d*/g, (s, a, b, c, d) => {
+            return s && parseFloat(s) * entry.w / entry.path_x
+        })
+    }
+}
+
+// }
+console.log(JSON.stringify(appConfig));
 
 
 const { Raphael, Paper, Set, Circle, Ellipse, Image, Rect, Text, Path, Line } = require('react-raphael');
@@ -26,22 +41,29 @@ const { Raphael, Paper, Set, Circle, Ellipse, Image, Rect, Text, Path, Line } = 
 // node.appendChild(textnode);
 // setTimeout(function(){ document.getElementById('addhere').appendChild(node)},2000)
 
+let resizingLatch = false;// use to build : const isResizing,  latch timeout used to stop flickering of the variable
+let resizingTimoutHandle = null
+
 let planLatch = null;
 let widthLatch = 0;
 
 let mousePosition = { x: 0, y: 0, domoffsetx: 0, domoffsety: 0, mousedown: false };
+let oldData = null;
 
 export function RTLS({ width, height }) {
     const dispatch = useDispatch();
-    const updateTrigger = useSelector(getTagsTrigger)
+    const updateTrigger = useSelector(getTagsTrigger); /// Just this line alone, triggers the components to update
     const buildings = useSelector(selectBuildings);
     const currentBuilding = useSelector(selectCurrentBuilding);
     const currentPlan = useSelector(selectCurrentPlan);
     const tagsInSocket = useSelector(selectTagsInSocket);
     const feeds = useSelector(selectFeeds);
-    const tags = getTags({currentPlan,currentBuilding, feeds});
+
+    const tags = mousePosition.mousedown ? oldData : getTags({ currentPlan, currentBuilding, feeds });
+    oldData = tags;
     const animationPeriod = useSelector(selectUpdatePeriod);
     const domRef = useRef();
+    const pathRef = useRef();
     const screenWidth = width;
     const screenHeight = height;
     const zoomWindowSize = appConfig.ZOOM_WINDOW_SIZE;
@@ -59,7 +81,7 @@ export function RTLS({ width, height }) {
         height: null,
         string: false
     }
-    const [viewbox, setViewbox] = useState({ ...viewBoxInit});
+    const [viewbox, setViewbox] = useState({ ...viewBoxInit });
 
     const scrollHandler = (event) => {
 
@@ -110,10 +132,12 @@ export function RTLS({ width, height }) {
     }
 
     const mouseDownHandler = (event) => {
+        setPanning(true);
         mousePosition = { ...mousePosition, mousedown: true }
     }
 
     const mouseUpHandler = (event) => { // this handler is also used for the mouseLeave event
+        setPanning(false);
         mousePosition = { ...mousePosition, mousedown: false }
     }
 
@@ -196,57 +220,38 @@ export function RTLS({ width, height }) {
     }
     // console.log('screenSizes',screenWidth,screenHeight);
 
-    // Performance purpose TODO-  remove this true!
-    useEffect(() => {
-        // ReactDOM = 
-        if (domRef.current) {
-
-            let boundingRect = domRef.current.parentNode.getBoundingClientRect();
-            mousePosition.domoffsetx = boundingRect.x;
-            mousePosition.domoffsety = boundingRect.y;
-        }
-        // debugger;
-        // var defs = document.createElementNS("http://www.w3.org/2000/svg", 'defs')
-        // defs.setAttribute("id","f21");
-        // var filter = document.createElementNS("http://www.w3.org/2000/svg", "filter");
-        // filter.setAttribute("id","f1");
-        // filter.setAttribute("x","0");
-        // filter.setAttribute("y","0");
-        // defs.appendChild(filter);
-
-
-        // let filter = document.createElementNS(domRef.current.namespaceURI, 'filter')
-        // defs.appendChild(filter)
-//         `<defs>
-//     <filter x="0" y="0" width="1" height="1" id="solid">
-//     <feFlood flood-color="yellow"/>
-//     <feComposite in="SourceGraphic" operator="xor" />
-//     </filter>
-// </defs>`
-        // domRef.current.appendChild(defs)
-
-        
-    }, [])
-
-    if (!currentPlan || screenHeight === undefined || screenWidth === undefined) {
-        return (<div ref={domRef} className={styles.layout}>No Current Plan</div>)
-    }
 
 
     // TODO- move this to buildingSlice somehow? but it needs this components height
     // calculates the pixels/meter of the screen! - changes when screen size changes!
-    const floorPlan = (currentPlan.height_pixels / currentPlan.width_pixels > screenHeight / screenWidth) ? { //floorplan too tall
+    const floorPlan = currentPlan ? ((currentPlan.height_pixels / currentPlan.width_pixels > screenHeight / screenWidth) ? { //floorplan too tall
         width: screenHeight * currentPlan.width_pixels / currentPlan.height_pixels,
         height: screenHeight
     } : {  // if we have Y overflow
             width: screenWidth,
             height: screenWidth * currentPlan.height_pixels / currentPlan.width_pixels
-        }
+        }) : { width: screenWidth, height: screenHeight }
 
-    const isReSizing = false || (widthLatch != floorPlan.width);
+
+    const isReSizing = false || (widthLatch != floorPlan.width);  // flickery variable!!! - happens once per render
+
+    if(isReSizing){
+        resizingLatch = true
+        if(resizingTimoutHandle){
+            clearTimeout(resizingTimoutHandle);
+            resizingTimoutHandle = null;
+        }
+        
+        resizingTimoutHandle = setTimeout(()=>{
+            resizingLatch = false
+        },200)
+    }
+    const isReSizingDebounced = resizingLatch
+
+    console.log('isReSizingDebounced',isReSizingDebounced)
     if (isReSizing && widthLatch != 0) {
         let newWidth = (viewbox.width || floorPlan.width) * floorPlan.width / widthLatch
-        let newHeight = newWidth * currentPlan.height_pixels / currentPlan.width_pixels
+        let newHeight = currentPlan ? newWidth * currentPlan.height_pixels / currentPlan.width_pixels : screenHeight
         let newOffsetX = (viewbox.offsetX || 0) * newWidth / viewbox.width;
         let newOffsetY = (viewbox.offsetY || 0) * newHeight / viewbox.height;
         let string = `${newOffsetX} ${newOffsetY} ${newWidth} ${newHeight}`;
@@ -256,15 +261,27 @@ export function RTLS({ width, height }) {
     widthLatch = floorPlan.width;
 
 
+    useEffect(() => {
+        console.log('ref Actually Updating')
+        let boundingRect = document.getElementsByTagName("main")[0].getBoundingClientRect()
+        mousePosition.domoffsetx = boundingRect.x;
+        mousePosition.domoffsety = boundingRect.y;
+    }, [isReSizing])
+
+    if (!currentPlan || screenHeight === undefined || screenWidth === undefined) {
+        return (<div ref={domRef} className={styles.layout}>No Current Plan</div>)
+    }
+
+
     // if switching plans!!  -  
     //  probably will move the viewbox to a redux state. So that it can be modified from external components!
     // still better doing it here though, than at every possible trigger
     // this block resets the viewbox to the initial zoom!
     if (planLatch != currentPlan) {
-        let calcWidth = floorPlan.width/viewBoxInit.zoom;
-        let calcHeight = floorPlan.height/viewBoxInit.zoom;
-        let calcOffsetX = (floorPlan.width - calcWidth)/2;
-        let calcOffsetY = (floorPlan.height - calcHeight)/2;
+        let calcWidth = floorPlan.width / viewBoxInit.zoom;
+        let calcHeight = floorPlan.height / viewBoxInit.zoom;
+        let calcOffsetX = (floorPlan.width - calcWidth) / 2;
+        let calcOffsetY = (floorPlan.height - calcHeight) / 2;
 
         let string = `${calcOffsetX} ${calcOffsetY} ${calcWidth} ${calcHeight}`
         setViewbox({ ...viewBoxInit, string, width: calcWidth, height: calcHeight, offsetX: calcOffsetX, offsetY: calcOffsetY })
@@ -279,7 +296,7 @@ export function RTLS({ width, height }) {
 
     const scaledFromOriginal = floorPlan.width / currentPlan.width_pixels  // originX/originY is specified in pixels relative to the orignal image size!
 
-    const labelOffsetY = 20;
+    const labelOffsetY = 10;
 
     return (<div className={styles.layout} onWheel={scrollHandler} onMouseMove={moveHandler} onMouseDown={mouseDownHandler} onMouseUp={mouseUpHandler} onMouseLeave={mouseUpHandler}>
         <div className={styles.mapwrapper}>
@@ -287,7 +304,7 @@ export function RTLS({ width, height }) {
             <Paper key={0} ref={domRef} width={floorPlan.width} height={floorPlan.height} viewbox={viewbox.string ? viewbox.string : undefined}>
                 <Set>
                     <Image src={currentPlan.image} x={0} y={0} width={floorPlan.width} height={floorPlan.height} />
-                    {
+                    {/* {
                         // disabling resizing during pagesize transition seems to introduce jumping, not worth it
                         // isReSizing ? 
                         // Object.entries(tags).map(([key, ele]) => {
@@ -299,23 +316,67 @@ export function RTLS({ width, height }) {
                                 <Circle key={ele.id} x={(currentPlan.originX * scaledFromOriginal) + (ele.prevX * pixelsPerMeter)} y={(currentPlan.originY * scaledFromOriginal) + (ele.prevY * pixelsPerMeter)} r={10} animate={Raphael.animation({ cx: (currentPlan.originX * scaledFromOriginal) + (ele.x * pixelsPerMeter), cy: (currentPlan.originY * scaledFromOriginal) + (ele.y * pixelsPerMeter) }, animationPeriod, '<>')} attr={{ "stroke": "#e11032", "stroke-width": 5 }} />
                                 )
                         })
-                    }
-                    {
+                    } */}
+                    {/* {
                         Object.entries(tags).map(([key, ele]) => {
                             return (
-                                <Text key={ele.id+1000000} x={(currentPlan.originX * scaledFromOriginal) + (ele.prevX * pixelsPerMeter)} y={labelOffsetY + (currentPlan.originY * scaledFromOriginal) + (ele.prevY * pixelsPerMeter)} animate={Raphael.animation({ x: (currentPlan.originX * scaledFromOriginal) + (ele.x * pixelsPerMeter), y: labelOffsetY + (currentPlan.originY * scaledFromOriginal) + (ele.y * pixelsPerMeter) }, animationPeriod, '<>')} text={tagsInSocket[ele.id].alias || tagsInSocket[ele.id].title } attr={{"filter":"url(#solid)", "fill":"#000"}}/>
+                                <Image key={ele.id+2000000} src={pinPerson} x={(currentPlan.originX * scaledFromOriginal) + (ele.prevX * pixelsPerMeter)-appConfig.PIN_PERSON.x_padd} y={(currentPlan.originY * scaledFromOriginal) + (ele.prevY * pixelsPerMeter)-appConfig.PIN_PERSON.y_padd} width={appConfig.PIN_PERSON.w} height={appConfig.PIN_PERSON.h} 
+                                    animate={Raphael.animation({ x: (currentPlan.originX * scaledFromOriginal) + (ele.x * pixelsPerMeter) - appConfig.PIN_PERSON.x_padd, y: (currentPlan.originY * scaledFromOriginal) + (ele.y * pixelsPerMeter) - appConfig.PIN_PERSON.y_padd }, animationPeriod, '<>')}/>
                             )
                         })
-                    }
+                    }  */}
                     {
-                        Object.entries(tags).map(([key, ele]) => {
-                            return (
-                                <Image key={ele.id+2000000} src="assets/img/pin_person.svg" x={100} y={170} width={90} height={60} />
-                            
+                        
+                        isReSizingDebounced && Object.entries(tags).map(([key, ele]) => {
+                            return  !mousePosition.mousedown ? (
+                                <Path key={ele.id + 300000} ref={pathRef} d={(appConfig.PIN_PERSON.path)}
+                                    attr={{
+                                        "stroke": "#e11032",
+                                        "fill": "#000"
+                                    }}
+                                    animate={
+                                        Raphael.animation({
+                                            0: { transform: `t${(currentPlan.originX * scaledFromOriginal) + (ele.prevX * pixelsPerMeter) - appConfig.PIN_PERSON.x_padd},${(currentPlan.originY * scaledFromOriginal) + (ele.prevY * pixelsPerMeter) - appConfig.PIN_PERSON.y_padd}` },//s${appConfig.PIN_PERSON.w/appConfig.PIN_PERSON.path_x},${appConfig.PIN_PERSON.h/appConfig.PIN_PERSON.path_y},0,0` },
+                                            100: { transform: `t${(currentPlan.originX * scaledFromOriginal) + (ele.x * pixelsPerMeter) - appConfig.PIN_PERSON.x_padd},${(currentPlan.originY * scaledFromOriginal) + (ele.y * pixelsPerMeter) - appConfig.PIN_PERSON.y_padd}` }//s${appConfig.PIN_PERSON.w/appConfig.PIN_PERSON.path_x},${appConfig.PIN_PERSON.h/appConfig.PIN_PERSON.path_y},0,0` }
 
-                                )
+                                        }, animationPeriod, '<>')
+                                    }
+                                />
+                            ) : (
+                                <Path key={ele.id + 300000} ref={pathRef} d={(appConfig.PIN_PERSON.path)}
+                                    attr={{
+                                        "stroke": "#e11032",
+                                        "fill": "#000"
+                                    }}
+                                    animate={
+                                        Raphael.animation({
+                                           transform: `t${(currentPlan.originX * scaledFromOriginal) + (ele.prevX * pixelsPerMeter) - appConfig.PIN_PERSON.x_padd},${(currentPlan.originY * scaledFromOriginal) + (ele.prevY * pixelsPerMeter) - appConfig.PIN_PERSON.y_padd}` },//s${appConfig.PIN_PERSON.w/appConfig.PIN_PERSON.path_x},${appConfig.PIN_PERSON.h/appConfig.PIN_PERSON.path_y},0,0` },
+                                            )
+                                    }
+                                />
+                            )
+
                         })
                     }
+                    {/* {
+                        Object.entries(tags).map(([key, ele]) => {
+                            return (
+                                <Text key={ele.id+1000000} 
+                                x={(currentPlan.originX * scaledFromOriginal) + (ele.prevX * pixelsPerMeter)} y={labelOffsetY + (currentPlan.originY * scaledFromOriginal) + (ele.prevY * pixelsPerMeter)} 
+                                animate={
+                                    // Raphael.animation({
+                                    //     0:{ transform: `t${(currentPlan.originX * scaledFromOriginal) + (ele.prevX * pixelsPerMeter)},${labelOffsetY + (currentPlan.originY * scaledFromOriginal) + (ele.prevY * pixelsPerMeter)}` },
+                                    //     100:{ transform: `t${(currentPlan.originX * scaledFromOriginal) + (ele.x * pixelsPerMeter)},${labelOffsetY + (currentPlan.originY * scaledFromOriginal) + (ele.y * pixelsPerMeter)}` }
+                                    
+                                    // }, animationPeriod, '<>')       
+                                    Raphael.animation({ x: (currentPlan.originX * scaledFromOriginal) + (ele.x * pixelsPerMeter), y: labelOffsetY + (currentPlan.originY * scaledFromOriginal) + (ele.y * pixelsPerMeter) }, animationPeriod, '<>')
+                                }
+                                text={(feeds[ele.id] && (feeds[ele.id].alias || feeds[ele.id].title)) || 'TESTING' } attr={{"fill":"#000"}}/>
+
+                                //"filter":"url(#solid)", 
+                            )
+                        })
+                    } */}
                 </Set>
 
             </Paper>
