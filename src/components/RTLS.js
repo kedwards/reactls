@@ -327,7 +327,10 @@ export function RTLS({ width, height }) {
                     }  */}
                     {
                         
-                        !isReSizingDebounced && Object.entries(tags).map(([key, ele]) => {
+                        Object.entries(tags).map(([key, ele]) => {
+                            if(isReSizingDebounced){
+                                return;
+                            }
                             return  !mousePosition.mousedown ? (
                                 <Path key={ele.id + 300000} ref={pathRef} d={(appConfig.PIN_PERSON.path)}
                                     attr={{
