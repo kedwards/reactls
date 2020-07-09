@@ -5,7 +5,7 @@ import { primeUpdateTrigger } from './RTLS';
 const websocketMessage = createAction('REDUX_WEBSOCKET::MESSAGE')
 
 const batchPeriod = 1000;
-const overRideMovementperiod = 200 || null; // otherwise it uses the batchPeriod
+const overRideMovementperiod = 100 || null; // otherwise it uses the batchPeriod
 let tagBuffer = {};
 let lastUpdate = Date.now();
 let tags = {};
@@ -173,7 +173,7 @@ export const handleWebsocketMessage = (m) =>{
                 }
             }
 
-            primeUpdateTrigger('tagSice', true);
+            primeUpdateTrigger(500, true);
         }
     }
 }

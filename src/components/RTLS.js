@@ -48,6 +48,7 @@ let resizingLatch = false;// use to build : const isResizing,  latch timeout use
 let resizingTimoutHandle = null
 
 let planLatch = null;
+let planWidthLatch = 0;
 let widthLatch = 0;
 let heightLatch = 0;
 
@@ -60,9 +61,9 @@ let mousePosition = { x: 0, y: 0, domoffsetx: 0, domoffsety: 0, mousedown: false
 
 let primeUpdateRef;
 
-export const primeUpdateTrigger = (reason,passive)=>{
+export const primeUpdateTrigger = (delay,passive)=>{
     if(primeUpdateRef){
-        primeUpdateRef(reason,passive)
+        primeUpdateRef(delay,passive)
     }
 }
 
@@ -254,7 +255,7 @@ export function RTLS({ width, height }) {
         }) : { width: screenWidth, height: screenHeight }
 
 
-    const isReSizing = false || (widthLatch != floorPlan.width) || (heightLatch != screenHeight);  // flickery variable!!! - happens once per render
+    const isReSizing = false || (planWidthLatch != floorPlan.width) || (widthLatch != screenWidth) || (heightLatch != screenHeight);  // flickery variable!!! - happens once per render
 
     if(isReSizing){
         resizingLatch = true
@@ -263,15 +264,15 @@ export function RTLS({ width, height }) {
             resizingTimoutHandle = null;
         }
         resizingTimoutHandle = setTimeout(()=>{
-            primeUpdateTrigger('resize'); // forces redraw
+            primeUpdateTrigger(50); // forces redraw - assuming < 50 ms between draws during resize process
             resizingLatch = false // this changes... but no help to const isReSizingDebounced.. because it doesnt get a chance to update
             
         },50)
     }
     const isReSizingDebounced = resizingLatch
 
-    if (isReSizing && widthLatch != 0) {
-        let newWidth = (viewbox.width || floorPlan.width) * floorPlan.width / widthLatch
+    if (isReSizing && planWidthLatch != 0) {
+        let newWidth = (viewbox.width || floorPlan.width) * floorPlan.width / planWidthLatch
         let newHeight = currentPlan ? newWidth * currentPlan.height_pixels / currentPlan.width_pixels : screenHeight
         let newOffsetX = (viewbox.offsetX || 0) * newWidth / viewbox.width;
         let newOffsetY = (viewbox.offsetY || 0) * newHeight / viewbox.height;
@@ -279,13 +280,14 @@ export function RTLS({ width, height }) {
         let newObj = { ...viewbox, string, offsetX: newOffsetX, offsetY: newOffsetY, width: newWidth, height: newHeight }
         setViewbox(newObj)
     }
-    widthLatch = floorPlan.width;
+    planWidthLatch = floorPlan.width;
+    widthLatch = screenWidth;
     heightLatch = screenHeight;
     // console.log('isReSizingDebounced',isReSizingDebounced);
 
 
 
-    const primeUpdateTrigger = primeUpdateRef = (reason, passive)=>{
+    const primeUpdateTrigger = primeUpdateRef = (delay, passive)=>{
         if(passive && reflectUpdateTimeoutHandler){ //if passive update trigger, and a handler is already in progress, dont push it out, and leave it be!
             return;
         }
@@ -298,13 +300,13 @@ export function RTLS({ width, height }) {
             if(!mousePosition.mousedown && !resizingLatch){
                 dispatch(pushTagsUpdate());
             }else{
-                primeUpdateTrigger(); // if update got skipped during panning, then try again in 100 ms.
+                primeUpdateTrigger(100); // if update got skipped during panning, then try again in 100 ms.
             }
             // console.log('pushing Tags Update!')
             // reflectUpdateTrigger(updateTriggerRef);
 
 
-        },100)  // small break after each draw! - must be larger than the time between subsequent pin draws
+        },delay)  // small break after each draw! - must be larger than the time between subsequent pin draws 
     }
 
     // useEffect(() => {
@@ -314,7 +316,7 @@ export function RTLS({ width, height }) {
 
     useEffect(()=>{
         Raphael.eve.on("raphael.anim.finish", function(e){
-            primeUpdateTrigger('animation-finish');
+            primeUpdateTrigger(0); // trigger quickly after animations are finished.
         });
         
         // setInterval(()=>{
