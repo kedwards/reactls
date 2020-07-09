@@ -1,13 +1,25 @@
 import React from 'react';  
 import styles from './layoutcounts.module.css'; 
 
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import {
     togglecounts
 } from './topnavbarSlice';
 
+import {
+    getTagsTrigger
+} from './tagsSlice';
+
+import {
+    selectFocusedFeeds
+} from './filtersSlice';
+
+
+
 export function LayoutCounts() {
     const dispatch = useDispatch();
+    const focusedFeeds = useSelector(selectFocusedFeeds);
+    const updateTrigger = useSelector(getTagsTrigger);
 
     return (
         
@@ -20,7 +32,11 @@ export function LayoutCounts() {
                     <path fillRule="evenodd" d="M12.354 1.646a.5.5 0 0 1 0 .708L6.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/>
                 </svg>
             </button>
-          <nav className="sidenav shadow-left sidenav-light" ></nav>
+          <nav className="sidenav shadow-left sidenav-light" >
+              {updateTrigger}
+            {JSON.stringify(focusedFeeds)}
+              
+          </nav>
         </div>
 
     );

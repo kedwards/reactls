@@ -1,5 +1,6 @@
 import React from 'react';
 import styles from './layoutfloors.module.css'; 
+import {ListGroup } from 'react-bootstrap';
 
 import { useSelector, useDispatch } from 'react-redux';
 import {
@@ -7,7 +8,7 @@ import {
 } from './topnavbarSlice';
 
 import {
-    selectBuildings, selectPlans, setCurrentBuildingPlan
+    selectBuildings, selectPlans, setCurrentBuildingPlan, selectCurrentPlan
 } from './buildingsSlice';
 
 
@@ -16,6 +17,7 @@ export function LayoutFloors() {
 
     const buildings = useSelector(selectBuildings);
     const plans = useSelector(selectPlans);
+    const currentPlan = useSelector(selectCurrentPlan);
 
     const clickPlan = ({buildingId, planId})=>{
         return ()=>{
@@ -38,14 +40,40 @@ export function LayoutFloors() {
           <nav className="nav flex-column" >
             <span className="navbar-brand mb-0 h1">Buildings</span>
             <br/>
+
+            {/* <h5>Building 1</h5>
+            <ListGroup variant="flush">
+                <ListGroup.Item active>Yappp</ListGroup.Item>
+                <ListGroup.Item>Yappp</ListGroup.Item>
+                <ListGroup.Item>Yappp</ListGroup.Item>
+                <ListGroup.Item>Yappp</ListGroup.Item>
+            </ListGroup>
               
+            <h5>Building 1</h5>
+            <ListGroup variant="flush">
+                <ListGroup.Item>Yappp</ListGroup.Item>
+                <ListGroup.Item>Yappp</ListGroup.Item>
+                <ListGroup.Item active>Yappp</ListGroup.Item>
+                <ListGroup.Item>Yappp</ListGroup.Item>
+            </ListGroup> */}
+
+
+            
             {Object.entries(buildings).map(([bid,b])=>{
+                let headerComponent = <h5 href="#">{b.title}</h5>;
+                let planComponent = Object.entries(plans).filter(([pid,p])=>(p.buildingId === bid)).map(([pid,p])=>{
+                    return <ListGroup.Item key={pid} action active={currentPlan && pid===currentPlan.id} onClick={clickPlan({buildingId:bid, planId: pid})}>{p.name}</ListGroup.Item>
+                });
+                return <div key={bid}>{headerComponent}<ListGroup variant="flush">{planComponent}</ListGroup></div>                
+            })}
+
+            {/* {Object.entries(buildings).map(([bid,b])=>{
                 let headerComponent = <span className="navbar-brand mb-0 h1" href="#">{b.title}</span>;
                 let planComponent = Object.entries(plans).filter(([pid,p])=>(p.buildingId === bid)).map(([pid,p])=>{
                     return <a key={pid} className="navbar-brand" href="#" onClick={clickPlan({buildingId:bid, planId: pid})}>{p.name}</a>
                 });
                 return <div key={bid} className="nav flex-column">{headerComponent}{planComponent}<br/></div>                
-            })}
+            })} */}
           </nav>
         </div>
 

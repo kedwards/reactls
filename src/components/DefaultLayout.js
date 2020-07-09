@@ -11,6 +11,7 @@ import { LayoutCounts } from './LayoutCounts';
 import { RTLS } from './RTLS';
 
 const RTLSwithResize = withResizeDetector(RTLS);
+const BottomSheetwithResize = withResizeDetector(BottomSheet);
 
 export function DefaultLayout (){
 
@@ -39,7 +40,7 @@ export function DefaultLayout (){
 
         <LayoutCounts/>
         <LayoutFloors/>        
-        <BottomSheet/>
+        <BottomSheetwithResize/>
 
     </div>
   );

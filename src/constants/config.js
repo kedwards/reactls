@@ -1,5 +1,5 @@
 let Config = {
-  ZOOM_WINDOW_SIZE: 120, // pixels (width) on screen, false ==> disables it
+  ZOOM_WINDOW_SIZE: 120, // zoom previewer element. Sets pixels (width) on screen, false ==> disables it
   ZOOM_PAN_LIMIT:10, // meters- limit bounds of panning
   ZOOM_OUT_LIMIT: 0.5, // zoom magnification.  (lower is more zoomed out)
   ZOOM_IN_LIMIT: 3, // meters- number of meters that the full screen of the device will show, lower is more zoomed in

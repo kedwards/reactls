@@ -5,6 +5,7 @@ import topnavbarReducer from '../components/topnavbarSlice';
 import authenticationReducer from '../components/authenticationSlice';
 import tagsReducer from '../components/tagsSlice';
 import buildingsReducer from '../components/buildingsSlice';
+import filtersReducer from '../components/filtersSlice';
 import storage from 'redux-persist/lib/storage';
 import { persistStore, persistReducer } from 'redux-persist';
 // import reduxWebsocketReducer from '../components/ReduxWebsocketReducer';
@@ -36,7 +37,8 @@ const rootReducer = combineReducers({
   topnavbar: topnavbarReducer,
   authentication: authenticationReducer,
   buildings: buildingsReducer,
-  // socket:reduxWebsocketReducer,
+  // socket:reduxWebsocketReducer,,
+  filters:filtersReducer,
   tags:tagsReducer
 });
 

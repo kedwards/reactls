@@ -1,7 +1,8 @@
 import { createSlice } from '@reduxjs/toolkit';
 import Helper from '../constants/helper';
 import apiPath from "../constants/apiPath";
-
+import feedResultsFake from './feedResultsFake';
+import buildingsResultsFake from './buildingsResultsFake';
 // const sizeOf = require('image-size');
 
 
@@ -69,23 +70,28 @@ export const fetchBuildings = ({token}) => async dispatch => {
 
     let perPage = 25;
     let page = 1;
-    let feedsAwaiter = Helper.get_v2({ page: 1, user: '', tag:'', q:'', per_page: perPage, _: Date.now()}, apiPath.feeds,{token});
-    // user=&tag=&q=&per_page=500&_=1593723060943
+    // let feedsAwaiter = Helper.get_v2({ page: 1, user: '', tag:'', q:'', per_page: perPage, dt: Date.now()}, apiPath.feeds,{token});
+                                                                                    // user=&tag=&q=&per_page=500&_=1593723060943
 
-    let tagsInSocketAwaiter = Helper.get_v2({}, apiPath.tag_activity, {token});
+                                                                                    // let tagsInSocketAwaiter = Helper.get_v2({}, apiPath.tag_activity, {token});
 
-    let buildingsRequestAwaiter = Helper.get({}, apiPath.buildings, {token});
-    let tagsInSocket = await tagsInSocketAwaiter;
-    let buildingsRequest = await buildingsRequestAwaiter;
+    // let buildingsRequestAwaiter = Helper.get({}, apiPath.buildings, {token});
+                                                                                    // let tagsInSocket = await tagsInSocketAwaiter;
+    // let buildingsRequest = await buildingsRequestAwaiter;
 
-    let feedResults = await feedsAwaiter;
+    // let feedResults = await feedsAwaiter;
+
+
+    let feedResults = feedResultsFake;
+
     let feeds = feedResults.results.reduce((m,f)=>{
       m[f.id] = f
       return m
     },{})
 
-    let response = await buildingsRequest.response;
-    let json = await response.json();
+    // let response = await buildingsRequest.response;
+    // let json = await response.json();
+    let json = buildingsResultsFake;
 
     let buildings = {}
 
@@ -124,7 +130,7 @@ export const fetchBuildings = ({token}) => async dispatch => {
     dispatch(setBuildings(buildings));
     dispatch(setPlans(plans));
     dispatch(setInitBuildingPlan({firstBuilding, firstPlan}))
-    dispatch(setTagsInSocket(tagsInSocket))
+    // dispatch(setTagsInSocket(tagsInSocket))
     dispatch(setFeeds(feeds))
 };
 
