@@ -272,7 +272,7 @@ export function RTLS({ width, height }) {
     const isReSizingDebounced = resizingLatch
 
     if (isReSizing){//} && planWidthLatch != 0) {
-        debugger;
+        // debugger;
         // THIS is broken-  cannot resize properly when changing the height!!
 
         // floorPlan.width    has the new calculated width -   limited by 
@@ -397,7 +397,7 @@ export function RTLS({ width, height }) {
         let calcOffsetY = (currentPlan.height_pixels - calcHeight) / 2;
 
         let string = `${calcOffsetX} ${calcOffsetY} ${calcWidth} ${calcHeight}`
-        console.log('isResizing', string);
+        console.log('isResizing', string, currentPlan.width_pixels, currentPlan.scale);
         setViewbox({ ...viewBoxInit, string, width: calcWidth, height: calcHeight, offsetX: calcOffsetX, offsetY: calcOffsetY })
         planLatch = currentPlan;
     }
@@ -414,7 +414,7 @@ export function RTLS({ width, height }) {
 
     return (<div id="rtls-div" className={styles.layout} onWheel={scrollHandler} onMouseMove={moveHandler} onMouseDown={mouseDownHandler} onMouseUp={mouseUpHandler} onMouseLeave={mouseUpHandler}>
         <div className={styles.mapwrapper}>
-            {console.log(viewbox.string)}
+            {/* {console.log(viewbox.string)} */}
             <Paper key={0} ref={domRef} width={screenWidth} height={screenHeight} viewbox={viewbox.string ? viewbox.string : undefined}>
                 <Set>
                     <Image src={currentPlan.image} x={0} y={0} width={currentPlan.width_pixels} height={currentPlan.height_pixels} />
