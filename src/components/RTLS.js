@@ -507,10 +507,13 @@ export function RTLS({ width, height }) {
                         backgroundSize: `cover`
                     }}>
                         <div className={styles.zoominner} style={{
-                            width: zoomWindowSize / viewbox.zoom,
-                            height: zoomWindowSize * currentPlan.height_pixels / currentPlan.width_pixels / viewbox.zoom,
-                            left: zoomWindowSize * viewbox.offsetX / (viewbox.width || currentPlan.width_pixels) / viewbox.zoom,
-                            top: zoomWindowSize * viewbox.offsetY * currentPlan.height_pixels / currentPlan.width_pixels / (viewbox.height || currentPlan.height_pixels) / viewbox.zoom
+                            width: zoomWindowSize * viewbox.width/currentPlan.width_pixels,
+                            left: zoomWindowSize * viewbox.offsetX / currentPlan.width_pixels,
+                            top: zoomWindowSize * viewbox.offsetY / currentPlan.width_pixels ,
+                            height: zoomWindowSize * viewbox.height / currentPlan.width_pixels,
+                            //top: zoomWindowSize * viewbox.offsetY / //(currentPlan.width_pixels*screenHeight/screenWidth)
+                            
+                            //((currentPlan.height_pixels - viewbox.height)/2 + viewbox.offsetY) / currentPlan.height_pixels
                         }}>
                         </div>
                     </div>

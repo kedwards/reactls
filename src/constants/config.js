@@ -18,7 +18,7 @@ let Config = {
     focusedColor: "#2196f3",
     strokeWidth:10,
     strokeColor:"#555",
-    zoom_mode: 0, //  0 - 1,   0 is fixed sizing relative to the floorplan. 1 is fixed sizing relative to the sreen.
+    zoom_mode: 0.5, //  0 - 1,   0 is fixed sizing relative to the floorplan. 1 is fixed sizing relative to the sreen.
     screen_size: 40 // pixels width   // takes more effect as zoom_mode approaches 1
   },
   
