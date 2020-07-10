@@ -503,7 +503,7 @@ export function RTLS({ width, height }) {
                     <div className={styles.zoomouter} style={{
                         width: zoomWindowSize,
                         height: zoomWindowSize * currentPlan.height_pixels / currentPlan.width_pixels,
-                        backgroundImage: `url(${currentPlan.image})`,
+                        backgroundImage: `url("${currentPlan.image}")`,
                         backgroundSize: `cover`
                     }}>
                         <div className={styles.zoominner} style={{
