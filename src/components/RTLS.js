@@ -448,9 +448,9 @@ export function RTLS({ width, height }) {
                             return  (
                                 <Path key={ele.id + 300000} ref={pathRef} d={(appConfig.PIN_PERSON.path)}
                                     attr={{
-                                        "stroke": "#555",
-                                        "stroke-width": "10px",
-                                        "fill": focusedFeeds[ele.id] ? "#2196f3":"#000"//rgba(33, 150, 243, 0.3);
+                                        "stroke": appConfig.PIN_PERSON.strokeColor,
+                                        "stroke-width": appConfig.PIN_PERSON.strokeWidth * personPinScale/300,
+                                        "fill": focusedFeeds[ele.id] ? appConfig.PIN_PERSON.focusedColor :  appConfig.PIN_PERSON.color  // "#2196f3":"#000"//rgba(33, 150, 243, 0.3);
                                     }}
                                     animate={
                                         mousePosition.mousedown ? 
