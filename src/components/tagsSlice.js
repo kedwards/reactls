@@ -1,11 +1,13 @@
 import { createSlice, createAction } from '@reduxjs/toolkit';
 import moment from 'moment';
 import { primeUpdateTrigger } from './RTLS';
+import appConfig from '../constants/config';
 
 const websocketMessage = createAction('REDUX_WEBSOCKET::MESSAGE')
 
 const batchPeriod = 1000;
 const overRideMovementperiod = 100 || null; // otherwise it uses the batchPeriod
+
 let tagBuffer = {};
 let lastUpdate = Date.now();
 let tags = {};
@@ -27,7 +29,7 @@ export const tagsSlice = createSlice({
     name: 'tags',
     initialState: {
         tags: {},
-        updatePeriod: batchPeriod,
+        // updatePeriod: batchPeriod,
         update:0
     },
     reducers: {
@@ -50,7 +52,7 @@ export const {  pushTagsUpdate } = tagsSlice.actions;
 // export const setDrawingFalse = () => busyDrawingFlag = false;
 // export const setDrawingTrue = () => busyDrawingFlag = true;
 export const selectTags = state => state.tags.tags;
-export const selectUpdatePeriod = state => overRideMovementperiod ? overRideMovementperiod : state.tags.updatePeriod;
+// export const selectUpdatePeriod = state => overRideMovementperiod ? overRideMovementperiod : state.tags.updatePeriod;
 
 // export const setFocusedTags = (fts) =>{
 //     focusedTags = fts
@@ -131,50 +133,10 @@ export const handleWebsocketMessage = (m) =>{
         }
         lastTimestamps[obj.id]  = obj.time;
 
-        if(tagBuffer[obj.id]){ // if it's already in the buffer waiting to be drawn! - Doing this allows it to "sync up"
-            forceFlush = true;
-        }else{
-            tagBuffer[obj.id] = obj; // we'll do this later, after drawing the current batch
-        }
+        tags[obj.id] = obj;
+        // = Object.assign(tags,{...obj })
 
-        forceFlush = false;  // Use this to make it possibly skip movements
-
-        if ( true || (forceFlush || rightNow > (lastUpdate + batchPeriod)) ) {  // createTimeout/update if needed.
-            // busyDrawingFlag = true;
-            // console.log('busyDrawing', true);
-            lastUpdate = rightNow;
-
-            //update existing tags to not repeat moving
-            // for(const [key, tag] of Object.entries(tags)){ 
-            //     if(!tagBuffer[key] && (tag.prevX !== tag.x || tag.prevY!==tag.y)){
-            //         tags[key] = Object.assign({},tag,{ prevX:tag.x, prevY:tag.y })
-            //     }
-            // }
-            // add or update new ones
-            tags = Object.assign(tags,tagBuffer)
-            // for(const [key, o] of Object.entries(tagBuffer)){
-            //     tags[key] = Object.assign({},tags[key] || { id: key },{  x: Number(o.x), y: Number(o.y), z:Number(0)})
-            //     // prevX calculated later when fetched via getTags
-            //     //prevX: tags[key]?tags[key].x : Number(o.x), prevY: tags[key] ? tags[key].y : Number(o.y),
-            // }
-            // console.log(`updating Tag Data! with ${Object.keys(tagBuffer).length} records`)
-                
-            tagBuffer = {};
-            if(forceFlush){
-                tagBuffer[obj.id] = obj;
-            }
-
-            if(!panning){
-                if(rtlsUpdateState==globalUpdate){
-                    // console.log('calling pushTagsUpdate',rtlsUpdateState, globalUpdate)
-                    // dispatch(tagsSlice.actions.pushTagsUpdate());
-                }else{
-                    // console.log('blocking update')
-                }
-            }
-
-            primeUpdateTrigger(500, true);
-        }
+        primeUpdateTrigger(appConfig.ANIMATION_PERIOD, true);
     }
 }
 

@@ -116,6 +116,8 @@ export const fetchBuildings = ({token}) => async dispatch => {
         p.width_meters = p.width_pixels / p.scale;
         p.height_meters = p.height_pixels / p.scale;
         p.buildingId = b.id;
+        p.originX = Number(p.originX);
+        p.originY = Number(p.originY);
 
         plans[p.id] = p;
         if (!firstPlan) {

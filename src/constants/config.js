@@ -1,4 +1,6 @@
 let Config = {
+  ANIMATION_PERIOD: 100, // How long it takes for movement animations to occur. Should be greater or equal to the socket/ Blink update interval (ms).
+
   ZOOM_WINDOW_SIZE: 120, // zoom previewer element. Sets pixels (width) on screen, false ==> disables it
   ZOOM_PAN_LIMIT:10, // meters- limit bounds of panning
   ZOOM_OUT_LIMIT: 0.5, // zoom magnification.  (lower is more zoomed out)

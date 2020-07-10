@@ -9,7 +9,7 @@ import pinPerson from '../assets/img/pin_person.svg';
 
 
 import {
-    selectTags, selectUpdatePeriod, getTags, getTagsTrigger, setPanning, pushTagsUpdate, reflectUpdateTrigger//, setDrawingFalse, setDrawingTrue
+     getTags, getTagsTrigger, pushTagsUpdate//, setDrawingFalse, setDrawingTrue
 } from './tagsSlice';
 
 import {
@@ -48,18 +48,16 @@ let resizingLatch = false;// use to build : const isResizing,  latch timeout use
 let resizingTimoutHandle = null
 
 let planLatch = null;
-let planWidthLatch = 0;
+// let planWidthLatch = 0;
 let widthLatch = 0;
 let heightLatch = 0;
 
 let reflectUpdateTimeoutHandler = null;
-let updateTriggerRef = 0;
-
 let lastUpdate = moment();
+let primeUpdateRef;
 
 let mousePosition = { x: 0, y: 0, domoffsetx: 0, domoffsety: 0, mousedown: false };
 
-let primeUpdateRef;
 
 export const primeUpdateTrigger = (delay,passive)=>{
     if(primeUpdateRef){
@@ -81,7 +79,7 @@ export function RTLS({ width, height }) {
 
     const tags = mousePosition.mousedown ? oldData.current : getTags({ currentPlan, currentBuilding, feeds, oldData: oldData.current });
     oldData.current = tags;
-    const animationPeriod = useSelector(selectUpdatePeriod);
+    const animationPeriod = appConfig.ANIMATION_PERIOD;//useSelector(selectUpdatePeriod);
     const domRef = useRef();
     const pathRef = useRef();
     const screenWidth = width;
@@ -115,22 +113,20 @@ export function RTLS({ width, height }) {
             zoomChange = newZoom / viewbox.zoom;
         }
         // newWidth  
-        else if ((viewbox.width || floorPlan.width) / (pixelsPerMeter * zoomChange) < zoomInLimit) { // limit zoom out!
-            // newZoom = zoomOutLimit;
-            // zoomChange = newZoom / viewbox.zoom;
-            zoomChange = (viewbox.width || floorPlan.width) / (pixelsPerMeter * zoomInLimit);
+        else if ((viewbox.width) / (pixelsPerMeter * zoomChange) < zoomInLimit) { // limit zoom out!
+            zoomChange = (viewbox.width) / (pixelsPerMeter * zoomInLimit);
             newZoom = zoomChange * viewbox.zoom;
         }
 
 
         let percentMouseX = mousePosition.x / screenWidth;
         let percentMouseY = mousePosition.y / screenHeight;
-        // console.log('mousePercent',percentMouseX,percentMouseY)
+        console.log('mousePercent',percentMouseX,percentMouseY)
         // debugger;
 
-        let prevWidth = (viewbox.width || floorPlan.width)
+        let prevWidth = (viewbox.width)
         let newWidth = prevWidth / zoomChange;
-        let prevHeight = (viewbox.height) || floorPlan.height;
+        let prevHeight = (viewbox.height);
         let newHeight = prevHeight / zoomChange;
 
         let addedOffsetX = 0;
@@ -182,13 +178,13 @@ export function RTLS({ width, height }) {
             }
             pastY++;
         }
-        if (newOffsetX + (newWidth || viewbox.width || floorPlan.width) - zoomPanLimit * pixelsPerMeter > floorPlan.width) {
+        if (newOffsetX + (newWidth || viewbox.width) - zoomPanLimit * pixelsPerMeter > currentPlan.width_pixels) {
             if (newOffsetX > viewbox.offsetX) {
                 newOffsetX = viewbox.offsetX;
             }
             pastX++;
         }
-        if (newOffsetY + (newHeight || viewbox.height || floorPlan.height) - zoomPanLimit * pixelsPerMeter > floorPlan.height) {
+        if (newOffsetY + (newHeight || viewbox.height) - zoomPanLimit * pixelsPerMeter > currentPlan.height_pixels) {
             if (newOffsetY > viewbox.offsetY) {
                 newOffsetY = viewbox.offsetY;
             }
@@ -200,32 +196,32 @@ export function RTLS({ width, height }) {
         if (-newOffsetY > zoomPanLimit * pixelsPerMeter) {  // have to repeat these, because it may shift twice if done in the other order and we could miss it
             pastY++;
         }
-        if ((newWidth || viewbox.width || floorPlan.width) - floorPlan.width > 2 * zoomPanLimit * pixelsPerMeter) { // zoom out causes lopsidedness past pan limit
+        if ((newWidth || viewbox.width ) - currentPlan.width_pixels > 2 * zoomPanLimit * pixelsPerMeter) { // zoom out causes lopsidedness past pan limit
             pastX++;
         }
-        if ((newHeight || viewbox.height || floorPlan.height) - floorPlan.height > 2 * zoomPanLimit * pixelsPerMeter) { // zoom out causes lopsidedness past pan limit
+        if ((newHeight || viewbox.height) - currentPlan.height_pixels > 2 * zoomPanLimit * pixelsPerMeter) { // zoom out causes lopsidedness past pan limit
             pastY++;
         }
         if (pastX > 1) { // moved it twice - so its zoomed out past the PAN limit, center it!
-            newOffsetX = (floorPlan.width - (newWidth || viewbox.width || floorPlan.width)) / 2;
+            newOffsetX = (currentPlan.width_pixels - (newWidth || viewbox.width)) / 2;
         }
         if (pastY > 1) { // moved it twice - so its zoomed out past the PAN limit, center it!
-            newOffsetY = (floorPlan.height - (newHeight || viewbox.height || floorPlan.height)) / 2;
+            newOffsetY = (currentPlan.height_pixels - (newHeight || viewbox.height )) / 2;
         }
         return { newOffsetX, newOffsetY }
     }
 
 
     const moveHandler = (event) => {
-        let prevWidth = (viewbox.width || floorPlan.width);
-        let prevHeight = (viewbox.height) || floorPlan.height;
+        let prevWidth = (viewbox.width);
+        let prevHeight = (viewbox.height);
 
         let newX = event.clientX - mousePosition.domoffsetx;
         let newY = event.clientY - mousePosition.domoffsety;
         if (mousePosition.mousedown) {
 
-            let diffX = (newX - mousePosition.x) / viewbox.zoom;
-            let diffY = (newY - mousePosition.y) / viewbox.zoom;
+            let diffX = (newX - mousePosition.x) * viewbox.width / screenWidth;
+            let diffY = (newY - mousePosition.y) * viewbox.height / screenHeight;
 
             let tempNewOffsetX = viewbox.offsetX - diffX;
             let tempNewOffsetY = viewbox.offsetY - diffY;
@@ -246,17 +242,21 @@ export function RTLS({ width, height }) {
 
     // TODO- move this to buildingSlice somehow? but it needs this components height
     // calculates the pixels/meter of the screen! - changes when screen size changes!
-    const floorPlan = currentPlan ? ((currentPlan.height_pixels / currentPlan.width_pixels > screenHeight / screenWidth) ? { //floorplan too tall
-        width: screenHeight * currentPlan.width_pixels / currentPlan.height_pixels,
-        height: screenHeight
-    } : {  // if we have Y overflow
-            width: screenWidth,
-            height: screenWidth * currentPlan.height_pixels / currentPlan.width_pixels
-        }) : { width: screenWidth, height: screenHeight }
+
+    // calculate the new floorplan size -
+    
+    
+    // const floorPlan = currentPlan ? ((currentPlan.height_pixels / currentPlan.width_pixels > screenHeight / screenWidth) ? { //floorplan too tall
+    //     width: screenHeight * currentPlan.width_pixels / currentPlan.height_pixels,
+    //     height: screenHeight
+    // } : {  // if we have Y overflow
+    //         width: screenWidth,
+    //         height: screenWidth * currentPlan.height_pixels / currentPlan.width_pixels
+    //     }) : { width: screenWidth, height: screenHeight }
 
 
-    const isReSizing = false || (planWidthLatch != floorPlan.width) || (widthLatch != screenWidth) || (heightLatch != screenHeight);  // flickery variable!!! - happens once per render
-
+    const isReSizing = false || (widthLatch != screenWidth) || (heightLatch != screenHeight);  // flickery variable!!! - happens once per render
+            // || (currentPlan && planWidthLatch != currentPlan.height_pixels) 
     if(isReSizing){
         resizingLatch = true
         if(resizingTimoutHandle){
@@ -266,21 +266,65 @@ export function RTLS({ width, height }) {
         resizingTimoutHandle = setTimeout(()=>{
             primeUpdateTrigger(50); // forces redraw - assuming < 50 ms between draws during resize process
             resizingLatch = false // this changes... but no help to const isReSizingDebounced.. because it doesnt get a chance to update
-            
+            resizingTimoutHandle = null;
         },50)
     }
     const isReSizingDebounced = resizingLatch
 
-    if (isReSizing && planWidthLatch != 0) {
-        let newWidth = (viewbox.width || floorPlan.width) * floorPlan.width / planWidthLatch
-        let newHeight = currentPlan ? newWidth * currentPlan.height_pixels / currentPlan.width_pixels : screenHeight
-        let newOffsetX = (viewbox.offsetX || 0) * newWidth / viewbox.width;
-        let newOffsetY = (viewbox.offsetY || 0) * newHeight / viewbox.height;
+    if (isReSizing){//} && planWidthLatch != 0) {
+        debugger;
+        // THIS is broken-  cannot resize properly when changing the height!!
+
+        // floorPlan.width    has the new calculated width -   limited by 
+        // floorPlan.height has the new calculated height - 
+
+        //viewbox.width   is previous width
+
+
+
+
+        //viewbox.width -- has old viewbox width
+        //viewbox.height -- has old viewbox height
+        //widthLatch -- has old screenWidth
+        //heightLatch -- has old screenHeight
+
+        // let newViewboxWidth = viewbox.width * widthLatch/screenHeight
+
+
+        let newWidth = viewbox.width * screenWidth / widthLatch;
+        let newHeight = viewbox.height * screenHeight / heightLatch;
+        let newOffsetX = viewbox.offsetX - (( newWidth - viewbox.width)/2);
+        let newOffsetY = viewbox.offsetY - (( newHeight - viewbox.height)/2);
+
+
+
+
+        // let newWidth,newHeight;
+
+        // if(floorPlan.width/floorPlan.height > screenWidth/screenHeight){ // if floorPlan is wider than screen space
+        //     newWidth = floorPlan.width/viewbox.width
+
+        // }else{ // floorPlan is taller than screen space
+
+        // }
+
+
+        // if()
+
+        
+
+        // let newWidth = (viewbox.width || floorPlan.width) * floorPlan.width / (planWidthLatch || floorPlan.width);
+        // let newHeight = currentPlan ? newWidth * currentPlan.height_pixels / currentPlan.width_pixels : screenHeight; //screenHeight/screenWidth : screenHeight; //
+        // let newOffsetX = (viewbox.offsetX || 0) * newWidth / (viewbox.width||floorPlan.width);
+        // let newOffsetY = (viewbox.offsetY || 0) * newHeight / (viewbox.height || floorPlan.height);
+
+        
         let string = `${newOffsetX} ${newOffsetY} ${newWidth} ${newHeight}`;
+        
         let newObj = { ...viewbox, string, offsetX: newOffsetX, offsetY: newOffsetY, width: newWidth, height: newHeight }
         setViewbox(newObj)
     }
-    planWidthLatch = floorPlan.width;
+    // planWidthLatch = currentPlan.height_pixels;
     widthLatch = screenWidth;
     heightLatch = screenHeight;
     // console.log('isReSizingDebounced',isReSizingDebounced);
@@ -296,42 +340,27 @@ export function RTLS({ width, height }) {
         }
         reflectUpdateTimeoutHandler = setTimeout(()=>{
             reflectUpdateTimeoutHandler = null;
-            lastUpdate = moment();
             if(!mousePosition.mousedown && !resizingLatch){
                 dispatch(pushTagsUpdate());
             }else{
                 primeUpdateTrigger(100); // if update got skipped during panning, then try again in 100 ms.
             }
-            // console.log('pushing Tags Update!')
-            // reflectUpdateTrigger(updateTriggerRef);
-
-
         },delay)  // small break after each draw! - must be larger than the time between subsequent pin draws 
     }
 
-    // useEffect(() => {
-    //     updateTriggerRef = updateTrigger; // reference for Raphael events 
+    useEffect(() => {
+        lastUpdate = moment();
 
-    // },[updateTrigger]);
+    },[updateTrigger]);
 
     useEffect(()=>{
+        // Must block updateTriggers
         Raphael.eve.on("raphael.anim.finish", function(e){
-            primeUpdateTrigger(0); // trigger quickly after animations are finished.
+            if(moment().diff(lastUpdate) > animationPeriod ){  // Block Early firing of End Animation events that happen before they should!
+                primeUpdateTrigger(10); // trigger quickly after animations are finished.
+            }
         });
-        
-        // setInterval(()=>{
-        //     if(!mousePosition.mousedown && !resizingLatch){
-        //         // triggers draws manually.  Usually triggered by animation, but 
-        //         if(moment().diff(lastUpdate) > 300){
-        //             primeUpdateTrigger();
-        //         }
-        //         // console.log('primin');
-        //     }
-        // },300)
     },[])
-
-    // if new data coming in, call primeUpdateTrigger()
-
 
     useEffect(() => {
         let boundingRect = document.getElementsByTagName("main")[0].getBoundingClientRect()
@@ -340,13 +369,6 @@ export function RTLS({ width, height }) {
         // primeUpdateTrigger() // keep pushing out the redraws!
     }, [isReSizing])
 
-    // useEffect(()=>{
-    //     console.log('isResizingDebounced primeUpdateTrigger',isReSizingDebounced)
-    //     if(!isReSizingDebounced){
-    //         console.log('isResizingDebounced primeUpdateTrigger')
-    //         primeUpdateTrigger()
-    //     }
-    // },[isReSizingDebounced])
 
     if (!currentPlan || screenHeight === undefined || screenWidth === undefined) {
         return (<div ref={domRef} className={styles.layout}>No Current Plan</div>)
@@ -358,32 +380,44 @@ export function RTLS({ width, height }) {
     // still better doing it here though, than at every possible trigger
     // this block resets the viewbox to the initial zoom!
     if (planLatch != currentPlan) {
-        let calcWidth = floorPlan.width / viewBoxInit.zoom;
-        let calcHeight = floorPlan.height / viewBoxInit.zoom;
-        let calcOffsetX = (floorPlan.width - calcWidth) / 2;
-        let calcOffsetY = (floorPlan.height - calcHeight) / 2;
+
+        let calcWidth, calcHeight;
+        
+        if(currentPlan.height_pixels/currentPlan.width_pixels > screenHeight / screenWidth ){ // floorPlan too tall for screen area
+            calcHeight = currentPlan.height_pixels / viewBoxInit.zoom;
+            calcWidth = calcHeight * screenWidth / screenHeight;
+        }else{ // floorPlan too side for screen area
+            calcWidth = currentPlan.width_pixels / viewBoxInit.zoom;
+            calcHeight = calcWidth * screenHeight / screenWidth;
+        }
+        /// FIX THIS STUFF- - its missing logic to consider viewbox != floorplan dimensions!!!! 
+        // let calcWidth = floorPlan.width / viewBoxInit.zoom;
+        // let calcHeight = floorPlan.height / viewBoxInit.zoom;
+        let calcOffsetX = (currentPlan.width_pixels - calcWidth) / 2;
+        let calcOffsetY = (currentPlan.height_pixels - calcHeight) / 2;
 
         let string = `${calcOffsetX} ${calcOffsetY} ${calcWidth} ${calcHeight}`
+        console.log('isResizing', string);
         setViewbox({ ...viewBoxInit, string, width: calcWidth, height: calcHeight, offsetX: calcOffsetX, offsetY: calcOffsetY })
         planLatch = currentPlan;
     }
 
 
     // want to convert meters to pixels, so, figure out the conversion rate
-    const pixelsPerMeter = floorPlan.width / currentPlan.width_meters;
+    const pixelsPerMeter = currentPlan.scale;//width_pixels / currentPlan.width_meters;
 
     // want to go from floorplan image width to screen pixels
 
-    const scaledFromOriginal = floorPlan.width / currentPlan.width_pixels  // originX/originY is specified in pixels relative to the orignal image size!
+    // const scaledFromOriginal = floorPlan.width / currentPlan.width_pixels  // originX/originY is specified in pixels relative to the orignal image size!
 
     const labelOffsetY = 10;
 
     return (<div id="rtls-div" className={styles.layout} onWheel={scrollHandler} onMouseMove={moveHandler} onMouseDown={mouseDownHandler} onMouseUp={mouseUpHandler} onMouseLeave={mouseUpHandler}>
         <div className={styles.mapwrapper}>
-            {/* {JSON.stringify(tags)} */}
+            {console.log(viewbox.string)}
             <Paper key={0} ref={domRef} width={screenWidth} height={screenHeight} viewbox={viewbox.string ? viewbox.string : undefined}>
                 <Set>
-                    <Image src={currentPlan.image} x={0} y={0} width={floorPlan.width} height={floorPlan.height} />
+                    <Image src={currentPlan.image} x={0} y={0} width={currentPlan.width_pixels} height={currentPlan.height_pixels} />
                     {/* {
                         // disabling resizing during pagesize transition seems to introduce jumping, not worth it
                         // isReSizing ? 
@@ -421,12 +455,12 @@ export function RTLS({ width, height }) {
                                         mousePosition.mousedown ? 
 
                                         Raphael.animation({
-                                            transform: `t${(currentPlan.originX * scaledFromOriginal) + (ele.x * pixelsPerMeter) - appConfig.PIN_PERSON.x_padd},${(currentPlan.originY * scaledFromOriginal) + (ele.y * pixelsPerMeter) - appConfig.PIN_PERSON.y_padd}` },//s${appConfig.PIN_PERSON.w/appConfig.PIN_PERSON.path_x},${appConfig.PIN_PERSON.h/appConfig.PIN_PERSON.path_y},0,0` },
+                                            transform: `t${(currentPlan.originX ) + (ele.x * pixelsPerMeter) - (appConfig.PIN_PERSON.x_padd*currentPlan.scale*appConfig.PIN_PERSON.w/appConfig.PIN_PERSON.path_x)},${(currentPlan.originY ) + (ele.y * pixelsPerMeter) - (appConfig.PIN_PERSON.y_padd*currentPlan.scale*appConfig.PIN_PERSON.h/appConfig.PIN_PERSON.path_y)}s${currentPlan.scale*appConfig.PIN_PERSON.w/appConfig.PIN_PERSON.path_x},${currentPlan.scale*appConfig.PIN_PERSON.h/appConfig.PIN_PERSON.path_y},0,0` },
                                             )
                                         :
                                         Raphael.animation({
-                                            0: { transform: `t${(currentPlan.originX * scaledFromOriginal) + (ele.prevX * pixelsPerMeter) - appConfig.PIN_PERSON.x_padd},${(currentPlan.originY * scaledFromOriginal) + (ele.prevY * pixelsPerMeter) - appConfig.PIN_PERSON.y_padd}` },//s${appConfig.PIN_PERSON.w/appConfig.PIN_PERSON.path_x},${appConfig.PIN_PERSON.h/appConfig.PIN_PERSON.path_y},0,0` },
-                                            100: { transform: `t${(currentPlan.originX * scaledFromOriginal) + (ele.x * pixelsPerMeter) - appConfig.PIN_PERSON.x_padd},${(currentPlan.originY * scaledFromOriginal) + (ele.y * pixelsPerMeter) - appConfig.PIN_PERSON.y_padd}` }//s${appConfig.PIN_PERSON.w/appConfig.PIN_PERSON.path_x},${appConfig.PIN_PERSON.h/appConfig.PIN_PERSON.path_y},0,0` }
+                                            0: { transform: `t${(currentPlan.originX ) + (ele.prevX * pixelsPerMeter) - (appConfig.PIN_PERSON.x_padd*currentPlan.scale*appConfig.PIN_PERSON.w/appConfig.PIN_PERSON.path_x)},${(currentPlan.originY ) + (ele.prevY * pixelsPerMeter) - (appConfig.PIN_PERSON.y_padd*currentPlan.scale*appConfig.PIN_PERSON.h/appConfig.PIN_PERSON.path_y)}s${currentPlan.scale*appConfig.PIN_PERSON.w/appConfig.PIN_PERSON.path_x},${currentPlan.scale*appConfig.PIN_PERSON.h/appConfig.PIN_PERSON.path_y},0,0` },
+                                            100: { transform: `t${(currentPlan.originX ) + (ele.x * pixelsPerMeter) - (appConfig.PIN_PERSON.x_padd*currentPlan.scale*appConfig.PIN_PERSON.w/appConfig.PIN_PERSON.path_x)},${(currentPlan.originY ) + (ele.y * pixelsPerMeter) - (appConfig.PIN_PERSON.y_padd*currentPlan.scale*appConfig.PIN_PERSON.h/appConfig.PIN_PERSON.path_y)}s${currentPlan.scale*appConfig.PIN_PERSON.w/appConfig.PIN_PERSON.path_x},${currentPlan.scale*appConfig.PIN_PERSON.h/appConfig.PIN_PERSON.path_y},0,0` }
 
                                         }, animationPeriod, '<>')
                                     }
@@ -440,15 +474,17 @@ export function RTLS({ width, height }) {
                             if(isReSizingDebounced){
                                 return;
                             }
+                            // {console.log(currentPlan.originX, ele.prevX, pixelsPerMeter)}
                             return (<Text key={ele.id+1000000} 
-                                x={(currentPlan.originX * scaledFromOriginal) + ((mousePosition.mousedown ? ele.x : ele.prevX) * pixelsPerMeter)} y={labelOffsetY + (currentPlan.originY * scaledFromOriginal) + ((mousePosition.mousedown ? ele.y : ele.prevY) * pixelsPerMeter)} 
+                                x={(currentPlan.originX ) + ((mousePosition.mousedown ? ele.x : ele.prevX) * pixelsPerMeter)} 
+                                y={labelOffsetY + (currentPlan.originY ) + ((mousePosition.mousedown ? ele.y : ele.prevY) * pixelsPerMeter)} 
                                 animate={
                                     // Raphael.animation({
-                                    //     0:{ transform: `t${(currentPlan.originX * scaledFromOriginal) + (ele.prevX * pixelsPerMeter)},${labelOffsetY + (currentPlan.originY * scaledFromOriginal) + (ele.prevY * pixelsPerMeter)}` },
-                                    //     100:{ transform: `t${(currentPlan.originX * scaledFromOriginal) + (ele.x * pixelsPerMeter)},${labelOffsetY + (currentPlan.originY * scaledFromOriginal) + (ele.y * pixelsPerMeter)}` }
+                                    //     0:{ transform: `t${(currentPlan.originX ) + (ele.prevX * pixelsPerMeter)},${labelOffsetY + (currentPlan.originY ) + (ele.prevY * pixelsPerMeter)}` },
+                                    //     100:{ transform: `t${(currentPlan.originX ) + (ele.x * pixelsPerMeter)},${labelOffsetY + (currentPlan.originY ) + (ele.y * pixelsPerMeter)}` }
                                     
                                     // }, animationPeriod, '<>')
-                                    Raphael.animation({ x: (currentPlan.originX * scaledFromOriginal) + (ele.x * pixelsPerMeter), y: labelOffsetY + (currentPlan.originY * scaledFromOriginal) + (ele.y * pixelsPerMeter) }, animationPeriod, '<>')
+                                    Raphael.animation({ x: (currentPlan.originX ) + (ele.x * pixelsPerMeter), y: labelOffsetY + (currentPlan.originY ) + (ele.y * pixelsPerMeter) }, animationPeriod, '<>')
                                 }
                                 text={(feeds[ele.id] && (feeds[ele.id].alias || feeds[ele.id].title)) || 'TESTING' } attr={{"fill":"#000"}}/>
                                 //"filter":"url(#solid)", 
@@ -464,15 +500,15 @@ export function RTLS({ width, height }) {
                 <div key={1} className={styles.zoomindicator}>
                     <div className={styles.zoomouter} style={{
                         width: zoomWindowSize,
-                        height: zoomWindowSize * floorPlan.height / floorPlan.width,
+                        height: zoomWindowSize * currentPlan.height_pixels / currentPlan.width_pixels,
                         backgroundImage: `url(${currentPlan.image})`,
                         backgroundSize: `cover`
                     }}>
                         <div className={styles.zoominner} style={{
                             width: zoomWindowSize / viewbox.zoom,
-                            height: zoomWindowSize * floorPlan.height / floorPlan.width / viewbox.zoom,
-                            left: zoomWindowSize * viewbox.offsetX / (viewbox.width || floorPlan.width) / viewbox.zoom,
-                            top: zoomWindowSize * viewbox.offsetY * floorPlan.height / floorPlan.width / (viewbox.height || floorPlan.height) / viewbox.zoom
+                            height: zoomWindowSize * currentPlan.height_pixels / currentPlan.width_pixels / viewbox.zoom,
+                            left: zoomWindowSize * viewbox.offsetX / (viewbox.width || currentPlan.width_pixels) / viewbox.zoom,
+                            top: zoomWindowSize * viewbox.offsetY * currentPlan.height_pixels / currentPlan.width_pixels / (viewbox.height || currentPlan.height_pixels) / viewbox.zoom
                         }}>
                         </div>
                     </div>
