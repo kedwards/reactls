@@ -23,13 +23,13 @@ import {
 
 // pre-scale svgs
 // const calcSvg = (entry,x,y)=>{
-for (let [key, entry] of Object.entries(appConfig)) {
-    if (entry.w && entry.path_x && entry.path) {
-        entry.path = entry.path.toString().replace(/\d*\.?\d*/g, (s, a, b, c, d) => {
-            return s && parseFloat(s) * entry.w / entry.path_x
-        })
-    }
-}
+// for (let [key, entry] of Object.entries(appConfig)) {
+//     if (entry.w && entry.path_x && entry.path) {
+//         entry.path = entry.path.toString().replace(/\d*\.?\d*/g, (s, a, b, c, d) => {
+//             return s && parseFloat(s) * entry.w / entry.path_x
+//         })
+//     }
+// }
 
 // }
 // console.log(JSON.stringify(appConfig));
@@ -112,7 +112,6 @@ export function RTLS({ width, height }) {
             newZoom = zoomOutLimit;
             zoomChange = newZoom / viewbox.zoom;
         }
-        // newWidth  
         else if ((viewbox.width) / (pixelsPerMeter * zoomChange) < zoomInLimit) { // limit zoom out!
             zoomChange = (viewbox.width) / (pixelsPerMeter * zoomInLimit);
             newZoom = zoomChange * viewbox.zoom;
@@ -410,7 +409,8 @@ export function RTLS({ width, height }) {
 
     // const scaledFromOriginal = floorPlan.width / currentPlan.width_pixels  // originX/originY is specified in pixels relative to the orignal image size!
 
-    const labelOffsetY = 10;
+    const personPinScale = ((1-appConfig.PIN_PERSON.zoom_mode)*currentPlan.scale + appConfig.PIN_PERSON.zoom_mode*appConfig.PIN_PERSON.screen_size*viewbox.width/screenWidth);
+    const labelOffsetY = personPinScale/3;
 
     return (<div id="rtls-div" className={styles.layout} onWheel={scrollHandler} onMouseMove={moveHandler} onMouseDown={mouseDownHandler} onMouseUp={mouseUpHandler} onMouseLeave={mouseUpHandler}>
         <div className={styles.mapwrapper}>
@@ -449,18 +449,19 @@ export function RTLS({ width, height }) {
                                 <Path key={ele.id + 300000} ref={pathRef} d={(appConfig.PIN_PERSON.path)}
                                     attr={{
                                         "stroke": "#555",
+                                        "stroke-width": "10px",
                                         "fill": focusedFeeds[ele.id] ? "#2196f3":"#000"//rgba(33, 150, 243, 0.3);
                                     }}
                                     animate={
                                         mousePosition.mousedown ? 
 
                                         Raphael.animation({
-                                            transform: `t${(currentPlan.originX ) + (ele.x * pixelsPerMeter) - (appConfig.PIN_PERSON.x_padd*currentPlan.scale*appConfig.PIN_PERSON.w/appConfig.PIN_PERSON.path_x)},${(currentPlan.originY ) + (ele.y * pixelsPerMeter) - (appConfig.PIN_PERSON.y_padd*currentPlan.scale*appConfig.PIN_PERSON.h/appConfig.PIN_PERSON.path_y)}s${currentPlan.scale*appConfig.PIN_PERSON.w/appConfig.PIN_PERSON.path_x},${currentPlan.scale*appConfig.PIN_PERSON.h/appConfig.PIN_PERSON.path_y},0,0` },
+                                            transform: `t${(currentPlan.originX ) + (ele.x * pixelsPerMeter) - (appConfig.PIN_PERSON.x_padd*personPinScale)},${(currentPlan.originY ) + (ele.y * pixelsPerMeter) - (appConfig.PIN_PERSON.y_padd*personPinScale)}s${personPinScale*appConfig.PIN_PERSON.w/appConfig.PIN_PERSON.path_x},${personPinScale*appConfig.PIN_PERSON.h/appConfig.PIN_PERSON.path_y},0,0` },
                                             )
                                         :
                                         Raphael.animation({
-                                            0: { transform: `t${(currentPlan.originX ) + (ele.prevX * pixelsPerMeter) - (appConfig.PIN_PERSON.x_padd*currentPlan.scale*appConfig.PIN_PERSON.w/appConfig.PIN_PERSON.path_x)},${(currentPlan.originY ) + (ele.prevY * pixelsPerMeter) - (appConfig.PIN_PERSON.y_padd*currentPlan.scale*appConfig.PIN_PERSON.h/appConfig.PIN_PERSON.path_y)}s${currentPlan.scale*appConfig.PIN_PERSON.w/appConfig.PIN_PERSON.path_x},${currentPlan.scale*appConfig.PIN_PERSON.h/appConfig.PIN_PERSON.path_y},0,0` },
-                                            100: { transform: `t${(currentPlan.originX ) + (ele.x * pixelsPerMeter) - (appConfig.PIN_PERSON.x_padd*currentPlan.scale*appConfig.PIN_PERSON.w/appConfig.PIN_PERSON.path_x)},${(currentPlan.originY ) + (ele.y * pixelsPerMeter) - (appConfig.PIN_PERSON.y_padd*currentPlan.scale*appConfig.PIN_PERSON.h/appConfig.PIN_PERSON.path_y)}s${currentPlan.scale*appConfig.PIN_PERSON.w/appConfig.PIN_PERSON.path_x},${currentPlan.scale*appConfig.PIN_PERSON.h/appConfig.PIN_PERSON.path_y},0,0` }
+                                            0: { transform: `t${(currentPlan.originX ) + (ele.prevX * pixelsPerMeter) - (appConfig.PIN_PERSON.x_padd*personPinScale)},${(currentPlan.originY ) + (ele.prevY * pixelsPerMeter) - (appConfig.PIN_PERSON.y_padd*personPinScale)}s${personPinScale*appConfig.PIN_PERSON.w/appConfig.PIN_PERSON.path_x},${personPinScale*appConfig.PIN_PERSON.h/appConfig.PIN_PERSON.path_y},0,0` },
+                                            100: { transform: `t${(currentPlan.originX ) + (ele.x * pixelsPerMeter) - (appConfig.PIN_PERSON.x_padd*personPinScale)},${(currentPlan.originY ) + (ele.y * pixelsPerMeter) - (appConfig.PIN_PERSON.y_padd*personPinScale)}s${personPinScale*appConfig.PIN_PERSON.w/appConfig.PIN_PERSON.path_x},${personPinScale*appConfig.PIN_PERSON.h/appConfig.PIN_PERSON.path_y},0,0` }
 
                                         }, animationPeriod, '<>')
                                     }
@@ -486,7 +487,8 @@ export function RTLS({ width, height }) {
                                     // }, animationPeriod, '<>')
                                     Raphael.animation({ x: (currentPlan.originX ) + (ele.x * pixelsPerMeter), y: labelOffsetY + (currentPlan.originY ) + (ele.y * pixelsPerMeter) }, animationPeriod, '<>')
                                 }
-                                text={(feeds[ele.id] && (feeds[ele.id].alias || feeds[ele.id].title)) || 'TESTING' } attr={{"fill":"#000"}}/>
+                                text={(feeds[ele.id] && (feeds[ele.id].alias || feeds[ele.id].title)) || 'TESTING' } 
+                                attr={{"fill":"#000","font-size": personPinScale/2 }}/>
                                 //"filter":"url(#solid)", 
                             )
                         })
