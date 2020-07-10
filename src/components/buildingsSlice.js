@@ -67,21 +67,24 @@ export const selectCurrentBuilding = state => state.buildings.currentBuilding;
 
 // initializes once at login/checksessionlogin
 export const fetchBuildings = ({token}) => async dispatch => {
+                                                                                 // user=&tag=&q=&per_page=500&_=1593723060943
+                                                                                    // let tagsInSocket = await tagsInSocketAwaiter;
+                                                                                    // let tagsInSocketAwaiter = Helper.get_v2({}, apiPath.tag_activity, {token});
 
     let perPage = 25;
     let page = 1;
+
+    // Actual Requests
     // let feedsAwaiter = Helper.get_v2({ page: 1, user: '', tag:'', q:'', per_page: perPage, dt: Date.now()}, apiPath.feeds,{token});
-                                                                                    // user=&tag=&q=&per_page=500&_=1593723060943
-
-                                                                                    // let tagsInSocketAwaiter = Helper.get_v2({}, apiPath.tag_activity, {token});
-
     // let buildingsRequestAwaiter = Helper.get({}, apiPath.buildings, {token});
-                                                                                    // let tagsInSocket = await tagsInSocketAwaiter;
     // let buildingsRequest = await buildingsRequestAwaiter;
-
     // let feedResults = await feedsAwaiter;
+    // let response = await buildingsRequest.response;
+    // let json = await response.json();
 
 
+
+    // Fake requests
     let feedResults = feedResultsFake;
 
     let feeds = feedResults.results.reduce((m,f)=>{
@@ -89,9 +92,9 @@ export const fetchBuildings = ({token}) => async dispatch => {
       return m
     },{})
 
-    // let response = await buildingsRequest.response;
-    // let json = await response.json();
     let json = buildingsResultsFake;
+    /// End fake requests
+
 
     let buildings = {}
 
